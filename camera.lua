@@ -65,9 +65,6 @@ end
 end
 
 function update_camera_vertical()
-if keyp("1") then
-	map_end_y+=1
-end
     local base_front = 72
     solo_front_y = solo_front_y or base_front
     last_active_count_y = last_active_count_y or 0
