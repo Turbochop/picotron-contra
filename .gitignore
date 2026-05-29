@@ -1,0 +1,15 @@
+# OS/editor noise
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Local backups and temporary files
+*.bak
+*.tmp
+*.log
+
+# Common exported/build folders
+build/
+dist/
+export/
+exports/
