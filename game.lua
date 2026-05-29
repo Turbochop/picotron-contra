@@ -88,8 +88,8 @@ end
  if spawn==1 then
  map_helper(0,80,220)
  spawn_scan_x = -1
---create_player(cam_x+50,cam_y+20,0)
- add_player_spawner(cam_x, cam_y, "player 1")
+ create_player(cam_x+50,cam_y+20,0)
+ --add_player_spawner(cam_x, cam_y, "player 1")
  add_bridge_destroy(46*8,7*8)
  add_bridge_destroy(67*8,7*8)
 
