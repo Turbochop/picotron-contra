@@ -1,4 +1,4 @@
---[[pod_format="raw",created="2026-02-24 20:03:51",modified="2026-04-12 15:28:16",revision=157]]
+--[[pod_format="raw",created="2026-02-24 20:03:51",modified="2026-05-28 12:50:18",revision=159]]
 visual_layer_1 = {}
 spawn_layer = {}
 
@@ -76,7 +76,7 @@ function process_spawn_metadata(width, height)
    for y=0,height-1 do
     local sprite_id = col[y]
     if sprite_id == 15 then
-     map_end = x * 8
+     map_end_x = x * 8
      col[y] = 0
     end
    end

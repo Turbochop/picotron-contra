@@ -1,4 +1,4 @@
---[[pod_format="raw",created="2026-03-02 22:46:00",modified="2026-04-30 21:56:00",revision=783]]
+--[[pod_format="raw",created="2026-03-02 22:46:00",modified="2026-05-29 14:48:27",revision=786]]
 --Modular player object
 
 function create_player(_x,_y,_player)
@@ -277,7 +277,7 @@ palt(30,true)
 palt()
   end
 --  local floor_x=flr(self.x+(self.w/2)/8)
-  print(self.aim,self.x,self.y-16,7)
+--  print(self.aim,self.x,self.y-16,7)
 --local center_x = self.x + self.w/2
 --local tile_x = flr(center_x / 8)
 --local local_x =flr (center_x % 8)

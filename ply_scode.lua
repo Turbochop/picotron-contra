@@ -1,4 +1,4 @@
---[[pod_format="raw",created="2026-04-07 10:50:13",modified="2026-04-12 15:14:48",revision=45]]
+--[[pod_format="raw",created="2026-04-07 10:50:13",modified="2026-05-29 14:55:31",revision=48]]
 
 --Player side-scrolling functions
 
@@ -41,7 +41,7 @@ if clear>15 and clear<19 then
 --poke(0x005580,0)
 end
 
-if clear>20 and ply.x<map_end+20 then 
+if clear>20 and ply.x<map_end_x+20 then 
 
 ply_run_right(ply)
 end
@@ -486,7 +486,7 @@ end
     -- falling down a hole
     
     end
-   --[[
+   ---[[
     if ply.y>=cam_y+120 then 
     if clear==0 then
     ply.health=0

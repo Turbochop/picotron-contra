@@ -1,4 +1,4 @@
---[[pod_format="raw",created="2026-02-06 05:20:50",modified="2026-04-30 22:04:34",revision=1282]]
+--[[pod_format="raw",created="2026-02-06 05:20:50",modified="2026-05-29 14:47:41",revision=1294]]
 --game state
 puptmr=50
 pallette=12
@@ -78,7 +78,7 @@ end
   
    if bfight then 
  cam_x+=.5
- map_end=217*8
+ --map_end=217*8
  end
  
 
@@ -87,9 +87,10 @@ end
  
  if spawn==1 then
  map_helper(0,80,220)
- spawn_scan_x = -1
- create_player(cam_x+50,cam_y+20,0)
- --add_player_spawner(cam_x, cam_y, "player 1")
+-- map_helper(0, 80, 26, 220)
+-- spawn_scan_x = -1
+--create_player(cam_x+50,cam_y+20,0)
+ add_player_spawner(cam_x, cam_y, "player 1")
  add_bridge_destroy(46*8,7*8)
  add_bridge_destroy(67*8,7*8)
 
@@ -403,8 +404,8 @@ cls(0)
 map()
 -- draw active layer 1 gameplay map
 draw_cached_layer(visual_layer_1)
---print(cam_y,cam_x,cam_y,7)
---print(map_end_y,cam_x,cam_y+16,7)
+--print(cam_x,cam_x,cam_y,7)
+--print(map_end_x,cam_x,cam_y+16,7)
 
 
  for eb in all(ebullet) do

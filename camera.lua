@@ -1,3 +1,4 @@
+--[[pod_format="raw",created="2026-04-11 17:24:57",modified="2026-05-29 13:07:57",revision=46]]
 --[[pod_format="raw",created="2026-04-11 17:24:57",modified="2026-04-24 01:35:05",revision=45]]
 -- =========================
 -- CAMERA UPDATE
@@ -64,6 +65,9 @@ end
 end
 
 function update_camera_vertical()
+if keyp("1") then
+	map_end_y+=1
+end
     local base_front = 72
     solo_front_y = solo_front_y or base_front
     last_active_count_y = last_active_count_y or 0

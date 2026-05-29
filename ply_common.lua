@@ -1,4 +1,4 @@
---[[pod_format="raw",created="2026-04-07 11:38:53",modified="2026-04-11 13:47:44",revision=42]]
+--[[pod_format="raw",created="2026-04-07 11:38:53",modified="2026-05-19 06:36:19",revision=56]]
 -- Common player control functions
 
 function ply_run_left(_ply)
@@ -28,7 +28,7 @@ end
 function ply_run_up(_ply)
 local ply=_ply
 	 ply.timer+=.08
-    ply.dy-=ply.acc1
+    ply.dy-=ply.acc1-.2
     ply.running=true
   
 end
@@ -36,7 +36,7 @@ end
 function ply_run_down(_ply)
 local ply=_ply
 	 ply.timer+=.08
-    ply.dy+=ply.acc1
+    ply.dy+=ply.acc1-.2
     ply.running=true
  
 end

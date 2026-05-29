@@ -1,4 +1,4 @@
---[[pod_format="raw",created="2025-02-02 19:06:08",modified="2026-04-30 22:00:31",revision=551]]
+--[[pod_format="raw",created="2025-02-02 19:06:08",modified="2026-05-29 14:55:53",revision=566]]
 
 --contra concept 
 --by turbochop
@@ -61,28 +61,23 @@ function _init()
       cam_dx=0
       cam_dy=0
    cam_x_min=0
-   spawn_layer = {}
- spawn_scan_x = -1
- spawn_scan_y = -1
-    solo_front = 110
- solo_front_x = 110
- solo_front_y = 72
- last_active_count = 0
- last_active_count_x = 0
- last_active_count_y = 0
+  spawn_layer = {}
+spawn_scan_x = -1
+   solo_front = 110
+last_active_count = 0
    map_start=0
 
     -- map_end=2048
        level_type="side scrolling"
        scrolling="horizontal"
       
- scroll_dir = "right"
- scroll_front = 110
- cam_x_min = 0
- cam_y_min = 0
- map_end_x = 2048
- map_end_y = 0
-       scene="game"
+--scroll_dir = "left"
+scroll_front = 110
+cam_x_min = 0
+cam_y_min = 0
+map_end_x = 2048
+map_end_y = 2048
+       scene="title"
     pallette=7
        timer=0
       timer1=0
@@ -185,15 +180,10 @@ visual_layer_1 = {}
       cam_dx=0
       cam_dy=0
    cam_x_min=0
-    spawn_layer = {}
- spawn_scan_x = -1
- spawn_scan_y = -1
-    solo_front = 110
- solo_front_x = 110
- solo_front_y = 72
- last_active_count = 0
- last_active_count_x = 0
- last_active_count_y = 0
+   spawn_layer = {}
+spawn_scan_x = -1
+   solo_front = 110
+last_active_count = 0
    map_start=0
     level_type="side scrolling"
     scrolling = "horizontal"
@@ -227,3 +217,4 @@ complete,clear=false,0
       toggle=false   
  fullreset=false
 end
+

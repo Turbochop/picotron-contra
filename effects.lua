@@ -1,4 +1,4 @@
---[[pod_format="raw",created="2026-02-06 05:15:57",modified="2026-04-30 07:40:32",revision=396]]
+--[[pod_format="raw",created="2026-02-06 05:15:57",modified="2026-05-29 14:47:14",revision=399]]
 --explosions and effects
   function add_controller(_x,_y)
 
@@ -69,8 +69,8 @@ add(effect,{
  
 
  update=function(self)
- self.screenx=(scrolling=="horizontal") and 0 or 50
- self.screeny=(scrolling=="horizontal") and 0 or 110
+ self.screenx=(scrolling==("horizontal" or "both")) and 0 or 50
+ self.screeny=(scrolling==("horizontal" or "both")) and 0 or 110
  local xoffset=(self.id==0) and 30 or 40
  self.id=(self.type=="player 1") and 0 or 1
  self.x=(cam_x+self.screenx)+xoffset+self.offset
@@ -120,7 +120,7 @@ end
  draw=function(self)
  local col=self.id==0 and 12 or 8
 --print(tostring(self.valid),cam_x,cam_y,7)
- rectfill(self.x,self.y,self.x+self.w,self.y+self.h,col)
+-- rectfill(self.x,self.y,self.x+self.w,self.y+self.h,col)
  
  end
   
