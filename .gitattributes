@@ -2,7 +2,7 @@
 *.lua text eol=lf
 *.md text eol=lf
 *.pod text eol=lf
-*.gfx text eol=lf
-*.map text eol=lf
-*.sfx text eol=lf
+*.gfx binary
+*.map binary
+*.sfx binary
 *.qoi binary

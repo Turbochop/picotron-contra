@@ -1,5 +1,4 @@
---[[pod_format="raw",created="2025-02-02 19:06:08",modified="2026-05-29 14:55:53",revision=566]]
-
+--[[pod_format="raw",created="2025-02-02 19:06:08",modified="2026-06-26 09:55:25",revision=683]]
 --contra concept 
 --by turbochop
 --graphics work
@@ -7,6 +6,7 @@
 
 include "effects.lua"
 include "map.lua"
+include "leveldata.lua"
 include "enemies.lua"
 include "powerups.lua"
 include "collision.lua"
@@ -56,27 +56,20 @@ function _init()
      enemies=0
         grav=.07
         fric=.23
-       cam_y=0
-       cam_x=0
-      cam_dx=0
-      cam_dy=0
-   cam_x_min=0
+       reset_camera_state()
   spawn_layer = {}
 spawn_scan_x = -1
-   solo_front = 110
-last_active_count = 0
    map_start=0
 
     -- map_end=2048
        level_type="side scrolling"
        scrolling="horizontal"
-      
---scroll_dir = "left"
-scroll_front = 110
-cam_x_min = 0
-cam_y_min = 0
-map_end_x = 2048
-map_end_y = 2048
+       level=1
+       song= {3,0,28,26}  
+scroll_dir = "right"
+scroll_front = 119
+map_end_x = 0
+map_end_y = 0
        scene="title"
     pallette=7
        timer=0
@@ -85,7 +78,7 @@ map_end_y = 2048
       timer2=0
       timer3=0
       spawn=0
-      
+    
 complete,clear=false,0
      fanfare=false
        ready=false
@@ -175,23 +168,16 @@ visual_layer_1 = {}
      enemies=0
         grav=.07
         fric=.23
-       cam_y=0
-       cam_x=0
-      cam_dx=0
-      cam_dy=0
-   cam_x_min=0
+       reset_camera_state()
    spawn_layer = {}
 spawn_scan_x = -1
-   solo_front = 110
-last_active_count = 0
    map_start=0
     level_type="side scrolling"
     scrolling = "horizontal"
+    level=1
 scroll_dir = "right"
 scroll_front = 110
-cam_x_min = 0
-cam_y_min = 0
-map_end_x = 2048
+map_end_x = 0
 map_end_y = 0
      map_end=1736
        sound=0
@@ -218,3 +204,31 @@ complete,clear=false,0
  fullreset=false
 end
 
+function level_reset()
+   
+
+        players={}
+         effect={}
+            pup={}
+         bullet={}
+        ebullet={}
+          enemy={}
+visual_layer_1 = {}
+        enemies=0
+         bfight=false  
+  reset_camera_state()
+   spawn_layer = {}
+  spawn_scan_x = -1
+      map_start=0
+          timer=0
+         timer1=0
+     
+      timer2=0
+      timer3=0
+      spawn=0
+      blink=0
+complete,clear=false,0
+     fanfare=false
+     toggle=false   
+
+end

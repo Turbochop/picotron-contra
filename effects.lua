@@ -1,4 +1,4 @@
---[[pod_format="raw",created="2026-02-06 05:15:57",modified="2026-05-29 14:47:14",revision=399]]
+--[[pod_format="raw",created="2026-02-06 05:15:57",modified="2026-06-26 08:25:55",revision=475]]
 --explosions and effects
   function add_controller(_x,_y)
 
@@ -55,13 +55,14 @@ add(effect,{
      w=8,
      h=8,
      id=0,
-     screenx=0,
-     screeny=0,
+     playeroffset=(_type=="player 2") and 20 or 0,
+     screenx=(level_type=="side scrolling") and 0 or 100,
+     screeny=(level_type=="side scrolling") and 0 or 110,
      timer=0,
      queued=true,
      init_spawn=true,
      poletimer=0,
-     valid=false,
+     valid=(level_type=="top down") and true or false,
      offset=0,
      polex=32,
      poley=0,
@@ -69,13 +70,26 @@ add(effect,{
  
 
  update=function(self)
- self.screenx=(scrolling==("horizontal" or "both")) and 0 or 50
- self.screeny=(scrolling==("horizontal" or "both")) and 0 or 110
+ if level_type=="top down" then
+ 	self.x=(cam_x+self.screenx+self.playeroffset)
+ self.y=(cam_y+self.screeny)
+ self.valid=true
+end
+ 
+ 
+if level_type=="side scrolling" then
+ local horizontal_spawn = scrolling=="horizontal" or scrolling=="both"
+ self.screenx=horizontal_spawn and 0 or 50
+ self.screeny=horizontal_spawn and 0 or 110
  local xoffset=(self.id==0) and 30 or 40
  self.id=(self.type=="player 1") and 0 or 1
- self.x=(cam_x+self.screenx)+xoffset+self.offset
- self.y=self.screeny+self.poley
+self.x=(cam_x+self.screenx)+xoffset+self.offset
+ self.y=(cam_y+self.screeny)+self.poley 
+ 
  self.poletimer+=1
+ end
+ 
+if level_type~= "top down" then
 for i=1,2 do
  self.poley+=4
 
@@ -91,18 +105,26 @@ for i=1,2 do
   self.offset+=8
   self.poley=0
   break
- end
-end
  
- --self.id=(self.type=="player 1") and 0 or 1
+end
+end 
+end
+ self.id=(self.type=="player 1") and 0 or 1
 
  if self.valid then
  if self.queued then
  if self.init_spawn then
- if level_type=="side scrolling" then
- 	create_player(self.x,-5,self.id)
- 	else
- 	create_player(self.x,self.y-8,self.id)
+ 	if level_type=="top down" then
+ --	local offsetx= (self.id==0) and 0 or 20
+ 	 create_player(self.x,self.y,self.id)
+ 
+elseif level_type=="side scrolling" then
+  if scrolling=="horizontal" then
+  create_player(self.x,cam_y-5,self.id)
+ 	elseif scrolling=="vertical" then
+ 	create_player(self.x,self.y-20,self.id)
+ 	
+ 	end
  	end
  	self.queued=false
  	end
@@ -119,8 +141,9 @@ end
  
  draw=function(self)
  local col=self.id==0 and 12 or 8
---print(tostring(self.valid),cam_x,cam_y,7)
--- rectfill(self.x,self.y,self.x+self.w,self.y+self.h,col)
+--  rectfill(self.x,self.y,self.x+self.w,self.y+self.h,col)
+--print(self.queued,self.x,self.y,7)
+
  
  end
   
@@ -321,16 +344,17 @@ self.position=24
  end,
  
  draw=function(self)
---palt(30,true)
+
 -- sspr(self.sp,self.x-self.offset,self.y-self.offset)
   sspr(self.sp,self.position,16,self.size,self.size,self.x-self.offset-(self.sw*6/2),self.y-self.offset-(self.sh*6/2),self.size*(self.sw/2),self.size*(self.sh/2),self.flp,self.inv)
---print(self.size,self.x,self.y,7)
---palt()
+
  end
   
 })
 
 end
+
+
 
 function add_new_shrap(_x,_y)
 

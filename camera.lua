@@ -1,8 +1,38 @@
---[[pod_format="raw",created="2026-04-11 17:24:57",modified="2026-05-29 13:07:57",revision=46]]
+--[[pod_format="raw",created="2026-04-11 17:24:57",modified="2026-06-26 08:42:02",revision=70]]
 --[[pod_format="raw",created="2026-04-11 17:24:57",modified="2026-04-24 01:35:05",revision=45]]
 -- =========================
 -- CAMERA UPDATE
 -- ========================= 
+function reset_camera_state()
+    cam_x=0
+    cam_y=0
+    cam_dx=0
+    cam_dy=0
+    cam_x_min=0
+    cam_y_min=0
+    solo_front_x=110
+    solo_front_y=72
+    last_active_count_x=0
+    last_active_count_y=0
+end
+
+function is_vertical_scroll_up()
+    return scroll_dir == "up"
+end
+
+function get_vertical_front()
+    return is_vertical_scroll_up() and 65 or 72
+end
+
+function set_camera_for_map_start()
+    if scrolling == "vertical" or scrolling == "both" then
+        local bottom_limit = max(0, map_end_y - 128)
+        cam_y = is_vertical_scroll_up() and bottom_limit or 0
+        cam_y_min = cam_y
+        solo_front_y = get_vertical_front()
+    end
+end
+
 function update_camera_horizontal()
 
 local base_front = 110
@@ -51,24 +81,20 @@ elseif active_count == 1 then
 end
 
 last_active_count_x = active_count
--- ratchet scrolling
- 
- if cam_x>cam_x_min then
- 	cam_x_min=cam_x
- end
- -- right edge clamp
-if cam_x > map_end_x - 240 then
-    cam_x = map_end_x - 240
 
+local right_limit = max(0, map_end_x - 240)
+cam_x = mid(0, cam_x, right_limit)
+
+-- ratchet scrolling
+if cam_x>cam_x_min then
+    cam_x_min=cam_x
 end
 
 end
 
 function update_camera_vertical()
-if keyp("1") then
-	map_end_y+=1
-end
-    local base_front = 72
+    local base_front = get_vertical_front()
+    local scroll_up = is_vertical_scroll_up()
     solo_front_y = solo_front_y or base_front
     last_active_count_y = last_active_count_y or 0
     local active = get_active_players()
@@ -77,13 +103,18 @@ end
     -- if co-op collapses to solo, inherit the survivor's current screen position
     if last_active_count_y >= 2 and active_count == 1 then
         local survivor = active[1]
-        solo_front_y = max(base_front, survivor.y - cam_y)
+        local survivor_screen_y = survivor.y - cam_y
+        if scroll_up then
+            solo_front_y = min(base_front, survivor_screen_y)
+        else
+            solo_front_y = max(base_front, survivor_screen_y)
+        end
     end
 
     if active_count >= 2 then
         local lead, trail = get_lead_and_trail(active, "y")
 
-        local sep = max(0, lead.y - trail.y)
+        local sep = scroll_up and max(0, trail.y - lead.y) or max(0, lead.y - trail.y)
         local threshold = 24
         local t = mid(0, (sep - threshold) / 50, 1)
 
@@ -93,7 +124,7 @@ end
         local focus_y = trail.y * (1 - bias) + lead.y * bias
         local desired_cam_y = focus_y - base_front
 
-        if not halt and desired_cam_y > cam_y then
+        if not halt and ((scroll_up and desired_cam_y < cam_y) or (not scroll_up and desired_cam_y > cam_y)) then
             cam_y = desired_cam_y
         end
 
@@ -103,29 +134,31 @@ end
     elseif active_count == 1 then
         local p = active[1]
 
-        -- scroll when the player moves below the front line
-        if not halt and p.y > cam_y + solo_front_y then
+        -- scroll when the player pushes into the front line
+        if not halt and ((scroll_up and p.y < cam_y + solo_front_y) or (not scroll_up and p.y > cam_y + solo_front_y)) then
             cam_y = p.y - solo_front_y
         end
 
-        -- preserve current on-screen position, but never less than base_front
+        -- preserve current on-screen position, then relax back toward the base front line
         local current_screen_y = p.y - cam_y
-        solo_front_y = max(base_front, current_screen_y)
+        if scroll_up then
+            solo_front_y = min(base_front, current_screen_y)
+        else
+            solo_front_y = max(base_front, current_screen_y)
+        end
     end
 
     last_active_count_y = active_count
 
-    -- ratchet scrolling: for downward movement, cam_y becoming larger means progress
-    if cam_y > cam_y_min then
+    local bottom_limit = max(0, map_end_y - 128)
+    cam_y = mid(0, cam_y, bottom_limit)
+
+    -- ratchet scrolling: vertical progress can move either up or down the map
+    if scroll_up and cam_y < cam_y_min then
+        cam_y_min = cam_y
+    elseif not scroll_up and cam_y > cam_y_min then
         cam_y_min = cam_y
     end
-
-    local bottom_limit = max(0, map_end_y - 128)
-
-    -- bottom edge clamp
-    if cam_y > bottom_limit then
-        cam_y = bottom_limit
-   end
 end
 
 function get_active_players()
@@ -161,8 +194,8 @@ function get_lead_and_trail(active, axis)
             return p2, p1
         end
     else
-        -- downward scrolling: bigger y is leading
-        if p1.y >= p2.y then
+        -- vertical leading depends on scroll direction
+        if (is_vertical_scroll_up() and p1.y <= p2.y) or (not is_vertical_scroll_up() and p1.y >= p2.y) then
             return p1, p2
         else
             return p2, p1

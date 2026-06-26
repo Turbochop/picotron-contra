@@ -1,4 +1,4 @@
---[[pod_format="raw",created="2026-02-06 05:20:50",modified="2026-05-29 14:47:41",revision=1294]]
+--[[pod_format="raw",created="2026-02-06 05:20:50",modified="2026-06-26 09:51:01",revision=1362]]
 --game state
 puptmr=50
 pallette=12
@@ -7,7 +7,8 @@ paltimer=0
 
 
  function update_game()
- grav=(level_type=="top down") and 0 or .07 
+-- grav=(level_type=="top down") and 0 or .07 
+ grav=.07 
 
 
    spawn+=1
@@ -23,34 +24,23 @@ paltimer=0
  end
  
  --Debug stuff
+ 
+
+
 --[[ 
  if mouse_b>0 then
- m_timer+=1
- if m_timer>=2 then
- 	m_timer=2
- end
- else m_timer=0
+
  end
 -- if mouse_b==3 then
--- if #players>0 then
--- 	effects={}
--- 	multiplayer=false
--- 	end
+
 -- end
  if mouse_b==1 and m_timer==1 then
--- music(13)
---if #players==0 then
--- 	create_player(mx,my,0) 
--- 	m_timer=2
--- 	elseif #players==1 then
--- 	create_player(mx,my,1)
---multiplayer=true
+
 -- end
---add_bridge_destroy(mx*8,my*8)
--- add_new_exp_spawner(mx,my,2,2,"instant")
+
 end
 --if mouse_b==2 and m_timer==1 then
---add_new_exp_spawner(mx,my,700)
+
 --end
 --]]
 
@@ -86,50 +76,39 @@ end
 
  
  if spawn==1 then
- map_helper(0,80,220)
--- map_helper(0, 80, 26, 220)
--- spawn_scan_x = -1
---create_player(cam_x+50,cam_y+20,0)
- add_player_spawner(cam_x, cam_y, "player 1")
- add_bridge_destroy(46*8,7*8)
- add_bridge_destroy(67*8,7*8)
+ 
+ level_setup(level)
+ 
 
- if multiplayer then
-  add_player_spawner(cam_x+20, cam_y, "player 2")
- end
-
- add_new_cap_spawner(32,3,spread)
- add_new_cap_spawner(59,4,rapid)
- add_new_cap_spawner(100,9,rapid)
- add_new_cap_spawner(166,4,mgun)
+ 
 end
 
    --level complete
  if complete==true then
   level_clear()
-  clear+=.1
+  clear+=1
   
   end
 
 
   
-  if clear >=20 and fanfare==false then
+  if clear >=200 and fanfare==false then
   music(1)
   fanfare=true
   end
   for p in all(players) do
-  if clear>=50 and p.dx~=0 then
-  	clear=50
+  if clear>=500 and p.dx~=0 then
+  	clear=500
   end
   end
   
-  if clear>=60 then 
-  cam_x_min=0
-  cam_x=0
-  cam_y=0
+
+  if clear>=600 then 
+  level_reset()
   timer=0
-  scene="end"
-  music(3)
+  level+=1
+  scene="card"
+ -- music(3)
   
   end
 
@@ -271,6 +250,9 @@ end
   for pl in all (players) do
 
    local back= 0
+   local front= 240
+   local bottom= 130
+   
   pl:update()
   resolve_slope(pl)
 
@@ -280,8 +262,16 @@ end
    
     end
     
-
-
+if level_type=="top down" then
+if pl.x+8>cam_x+front then
+    pl.x=cam_x+front-8
+   
+    end
+    if pl.y+12>cam_y+bottom then
+    pl.y=cam_y+bottom-12
+   
+    end
+    end
 
   if pl.x>=193*8 and bfight==false then
  
@@ -301,7 +291,9 @@ elseif scrolling == "vertical" then
 end
 
  camera(cam_x,cam_y)
+ if level~=0 then
 update_spawn_stream()
+end
 for p in all(pup) do
   p:update()
    resolve_slope(p)
@@ -334,9 +326,7 @@ end
 
  g_otimer=0
  timer1=0
- cam_x_min=0
- cam_x=0
- cam_y=0
+ reset_camera_state()
  toggle=false
  scene="gameover"
  music(2)
@@ -403,9 +393,11 @@ cls(0)
 -- draw cached layer 3 first if it's a background
 map()
 -- draw active layer 1 gameplay map
+if level~=0 then
 draw_cached_layer(visual_layer_1)
---print(cam_x,cam_x,cam_y,7)
---print(map_end_x,cam_x,cam_y+16,7)
+end
+--print(map_end_y,cam_x,cam_y,7)
+--print(#pup,cam_x,cam_y,7)
 
 
  for eb in all(ebullet) do
@@ -430,6 +422,7 @@ draw_cached_layer(visual_layer_1)
   sort_drawables_by_y(drawlist)
 
   for o in all(drawlist) do
+  palt(30,true)
    o:draw()
   end
 
@@ -466,11 +459,7 @@ draw_cached_layer(visual_layer_1)
  end
 
  rectfill(0+cam_x,128+cam_y,240+cam_x,136+cam_y,0)
- if g_otimer>1.9 and gameover then
+ if ((g_otimer>1.9 and gameover) or (clear>=585)) then
   rectfill(0+cam_x,0+cam_y,240+cam_x,136+cam_y,0)
  end
 end
-
-
- 
- 

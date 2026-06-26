@@ -1,4 +1,4 @@
---[[pod_format="raw",created="2026-02-24 20:03:51",modified="2026-05-28 12:50:18",revision=159]]
+--[[pod_format="raw",created="2026-02-24 20:03:51",modified="2026-06-26 08:53:44",revision=180]]
 visual_layer_1 = {}
 spawn_layer = {}
 
@@ -17,38 +17,56 @@ function map_helper(_x,_y,_width,_height)
   map_end_y = height * 8
  end
 
- local layers = fetch("map/0.map")
+ local source_layers = fetch("map/1.map")
+ local play_layers = fetch("map/0.map")
 
  -- =========================
- -- layer 2: cache spawn/meta layer
+ -- source layer 2: cache spawn/meta layer
  -- =========================
- cache_map_layer(layers[2].bmp, x, y, width, spawn_layer, height)
+ cache_map_layer(source_layers[2].bmp, x, y, width, spawn_layer, height)
 
  -- one-time immediate metadata scan
  process_spawn_metadata(width, height)
 
- -- =========================
- -- layer 1: cache visual overlay
- -- =========================
- cache_map_layer(layers[1].bmp, x, y, width, visual_layer_1, height)
+ if scrolling == "vertical" or scrolling == "both" then
+  set_camera_for_map_start()
+  if is_vertical_scroll_up() then
+   spawn_scan_y = min(height, flr(map_end_y / 8) + 1)
+  end
+ end
 
  -- =========================
- -- layer 3: active gameplay/collision layer
+ -- source layer 1: cache visual overlay
  -- =========================
- memmap(layers[3].bmp, 0x100000)
- copy_map_section(x, y, width, height)
+ cache_map_layer(source_layers[1].bmp, x, y, width, visual_layer_1, height)
+
+ -- =========================
+ -- source layer 3 -> play layer 3
+ -- =========================
+ copy_map_section(source_layers[3].bmp, play_layers[3].bmp, x, y, width, height)
 end
 
 
-function copy_map_section(x_start, y_start, width, height)
+function copy_map_section(source_bmp, dest_bmp, x_start, y_start, width, height)
  height = height or 16
 
  for x=0,width-1 do
+  local column = {}
+
+  memmap(source_bmp, 0x100000)
+
   for y=0,height-1 do
-   local tile = mget(x_start + x, y_start + y)
-   mset(x, y, tile)
+   column[y] = mget(x_start + x, y_start + y)
+  end
+
+  memmap(dest_bmp, 0x100000)
+
+  for y=0,height-1 do
+   mset(x, y, column[y])
   end
  end
+
+ memmap(dest_bmp, 0x100000)
 end
 
 
@@ -77,6 +95,9 @@ function process_spawn_metadata(width, height)
     local sprite_id = col[y]
     if sprite_id == 15 then
      map_end_x = x * 8
+     col[y] = 0
+    elseif sprite_id == 14 then
+     map_end_y = y * 8
      col[y] = 0
     end
    end
@@ -164,6 +185,27 @@ function draw_cached_layer(layer_table)
 end
 
 
+function update_spawn_rows(visible_top_row, visible_bottom_row, visible_left_col, visible_right_col)
+ local stream_height = spawn_stream_height or 16
+ local spawn_ahead_rows = is_vertical_scroll_up() and 4 or 0
+visible_top_row -= spawn_ahead_rows
+ visible_top_row = max(0, visible_top_row)
+ visible_bottom_row = min(stream_height - 1, visible_bottom_row)
+
+ if is_vertical_scroll_up() then
+  while spawn_scan_y > visible_top_row do
+   spawn_scan_y -= 1
+   process_spawn_row(spawn_scan_y, visible_left_col, visible_right_col)
+  end
+ else
+  while spawn_scan_y < visible_bottom_row do
+   spawn_scan_y += 1
+   process_spawn_row(spawn_scan_y, visible_left_col, visible_right_col)
+  end
+ end
+end
+
+
 function update_spawn_stream()
  local visible_left_col = flr(cam_x / 8)
  local visible_right_col = flr((cam_x + 240) / 8)
@@ -171,10 +213,7 @@ function update_spawn_stream()
  local visible_bottom_row = flr((cam_y + 128) / 8)
 
  if scrolling == "vertical" then
-  while spawn_scan_y < visible_bottom_row do
-   spawn_scan_y += 1
-   process_spawn_row(spawn_scan_y, visible_left_col, visible_right_col)
-  end
+  update_spawn_rows(visible_top_row, visible_bottom_row, visible_left_col, visible_right_col)
  else
   while spawn_scan_x < visible_right_col do
    spawn_scan_x += 1
@@ -182,10 +221,7 @@ function update_spawn_stream()
   end
 
   if scrolling == "both" then
-   while spawn_scan_y < visible_bottom_row do
-    spawn_scan_y += 1
-    process_spawn_row(spawn_scan_y, visible_left_col, visible_right_col)
-   end
+   update_spawn_rows(visible_top_row, visible_bottom_row, visible_left_col, visible_right_col)
   end
  end
 end

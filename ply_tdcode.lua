@@ -1,4 +1,4 @@
---[[pod_format="raw",created="2026-03-02 22:46:23",modified="2026-04-30 06:59:10",revision=703]]
+--[[pod_format="raw",created="2026-03-02 22:46:23",modified="2026-06-26 08:21:05",revision=713]]
 
 --player top-down functions
 
@@ -21,7 +21,7 @@ ply.dy=0
 --poke(0x005580,0)
 end
 
-if clear>20  then 
+if clear>200  then 
 --
 ply_run_up(ply)
 end
@@ -37,6 +37,7 @@ ply.respawn+=.1
 
 if ply.respawn<15 then ply.blink+=.5
 else ply.blink=0
+ply.respawn=15
  end
  
  if ply.blink>1 then ply.blink=0
@@ -97,25 +98,6 @@ end
   end
 
 
-
-
-
---post hit invincibilty
---ply.respawn+=.1
-
-
---if ply.respawn<15 then ply.blink+=.5
---else ply.blink=0
--- end
- 
--- if ply.blink>1 then ply.blink=0
--- end
-
-
-
-
-
-
 function ply_aim_top(_ply)
 
 local ply= _ply
@@ -127,30 +109,7 @@ if clear<15 then
  
  end
 end 
---  if ply.aim==6 and ply.running 
---  then ply.aim=1
---  end
---   end
---   if clear>=15 or not btn(2,ply.player) then 
---   if ply.running and (not ply.firing) or fanfare
---   then ply.aim+=ply.anim1
- 
-  -- player body animation system
-  
---   if ply.aim>3.85  then ply.anim1=ply.anim0
---   end
---  if ply.aim<1.11  then ply.anim1=ply.anim2
---  end
---if ply.water then ply.aim=0
---end
---  else ply.aim=0 
---  end
--- end
---  if btn(3,ply.player) and ply.running and not fanfare and not ply.water then
---   ply.aim=6
---  end
-  
-  
+
 end
 
 --aiming logic 
@@ -261,7 +220,7 @@ end
 
     end  
 
-    if collide_map(ply,"down",0)  then
+    if collide_map(ply,"down",0)   then
 
 
       ply.y = flr((ply.y + ply.h) / 8) * 8 - ply.h

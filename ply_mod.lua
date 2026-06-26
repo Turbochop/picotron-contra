@@ -1,4 +1,4 @@
---[[pod_format="raw",created="2026-03-02 22:46:00",modified="2026-05-29 14:48:27",revision=786]]
+--[[pod_format="raw",created="2026-03-02 22:46:00",modified="2026-06-26 08:26:10",revision=841]]
 --Modular player object
 
 function create_player(_x,_y,_player)
@@ -12,6 +12,9 @@ function create_player(_x,_y,_player)
  anim1=.11,
  timer=0,
  timer1=0,
+  td_death=0,
+  td_death_frame=1,  
+  td_death_y=0,
  is_player=true,
   --legs
      sp1=0,
@@ -22,14 +25,14 @@ function create_player(_x,_y,_player)
        w=5,
        h=8,
       dx=0,
-      dy=0,
+      dy=(scrolling=="horizontal") and 0 or -1,
   max_dx=.55,
   max_dy=2.5,
     acc1= (level_type=="top down") and .7  or .5,
-    
+   
     grav=.06,
     blink=0,
-       fric=.23,
+       fric=1,
     flp1=false,
     inv1=false,
    anim0=-.11,
@@ -54,10 +57,10 @@ can_fire=true,
   landed=false,
   on_slope=false,
   slope_bottom=nil,
-   tile_x= {0,1,2,3,4,5,6,7},
- tile_y= {7,6,5,4,3,2,1,0},
+
     jump=1.8,
- jumping=false,
+-- jumping=(level_type=="side scrolling") and true or false ,
+ jumping=(scrolling==("vertical" or "both")) and true or false ,
 jframet=0,
  jframe=1,
  jbuffer=0,
@@ -78,6 +81,11 @@ can_jump=true,
    lives=lifepool-1,
   jump_t=0,
   update=function(self)
+   
+  if level_type=="top down" then
+  self.jumping=false
+  end
+ 
  if self.dead then
  	self.blink=0
  end
@@ -100,7 +108,7 @@ elseif self.x<p.x then self.lead=false
     aiming_side(self)
       ply_fire(self)
     ply_anim_side(self)
-     
+    
    elseif level_type=="top down" then
     ply_mvmnt_top(self)
      
@@ -113,7 +121,7 @@ elseif self.x<p.x then self.lead=false
    
     
     end
-
+ 
 -- if bfight and not self.dead then 
 -- cam_x+=.5
 -- map_end=217*8
@@ -161,7 +169,9 @@ add_new_cannon(211,8)
  end
  end
    
-
+if keyp ("o") then
+  	self.health-=1
+  end
   end,
   
   draw=function(self)
@@ -198,7 +208,7 @@ local xframe={16,24,32,40,48,56,64,72}
 local player_sheet=1
 local offset= (level_type=="top down") and 40 or 16  
 local legoffset= (level_type=="top down") and 48 or 16  
-  
+
   
   
   
@@ -229,11 +239,15 @@ sspr(player_sheet,40,32,16,8,self.x-6,self.y,16,8,self.flp1,self.inv1)
  elseif not self.jumping then
  sspr(player_sheet,xframe[flr(self.sp1)],self.dead and 24 or 32,8,8,self.x,self.y,8,8,self.flp1,self.inv1)
 end
-else
+elseif (level_type=="top down" and not self.dead) then
  sspr(player_sheet,xframe[flr(self.sp1)],legoffset+(self.aim*8),8,8,self.x-xoffset,self.y+yoffset,8,8,self.flp0,self.inv1)
  end
    if self.prone or self.dead then
+   if level_type=="top down" then
    
+   	sspr(player_sheet,xframe[self.td_death_frame],88,8,16,self.x,self.y-3,8,16,self.flp0,self.inv0)
+   end
+  
    --player body graphics
  
      elseif self.water then
@@ -276,21 +290,8 @@ palt(30,true)
  end
 palt()
   end
---  local floor_x=flr(self.x+(self.w/2)/8)
---  print(self.aim,self.x,self.y-16,7)
---local center_x = self.x + self.w/2
---local tile_x = flr(center_x / 8)
---local local_x =flr (center_x % 8)
---print(self.sp1, self.x, self.y-8, 7)
- --]]
---rectfill(0+cam_x,128+cam_y,240+cam_x,136+cam_y,0)
-for p in all(players)do
-if self.player==0 then
-
---print(tostring(self.aim),cam_x,cam_y,7)
---print(self.sp1,self.x,self.y,10)
- end
-  end
+-- print((self.respawn),self.x,self.y,7)
+-- print(self.y,self.x,self.y-20,7)
 --   rect(x1r,y1r,x2r,y2r,7)
   end
  })

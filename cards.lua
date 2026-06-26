@@ -1,4 +1,4 @@
---[[pod_format="raw",created="2026-02-06 05:21:36",modified="2026-05-28 12:47:24",revision=460]]
+--[[pod_format="raw",created="2026-02-06 05:21:36",modified="2026-06-26 04:00:00",revision=488]]
 prompt=1
 badgex=7
 --title, card, end and gameover
@@ -173,11 +173,15 @@ function update_card()
 gameover=false
 start+=.01
   if start>=2.5 then 
-  copy_map_section(0, 16, 220)
+  starting_scene()
+ -- copy_map_section(0, 16, 220)
   scene="wipe"
---  fetch("sfx/1.sfx"):poke(0x80000)
---  music(0,0,0xf,0x80000)
-  music(28,0,0xf)
+  if level==2 then
+  fetch("sfx/1.sfx"):poke(0x80000)
+  music(song[level],0,0xf,0x80000)
+  else
+  music(song[level],0,0xf)
+  end
   start=0
 
   end
@@ -185,10 +189,11 @@ end
 
 function draw_card()
 cls(0)
+local name={"JUNGLE", " BASE"}
 camera(0,0)
-print ("STAGE 1",cam_x+100,cam_y+64,6)
-print ("JUNGLE",cam_x+102,cam_y+72,6)
---print(cam_x,0,0,7)
+print ("STAGE "..level,cam_x+100,cam_y+64,6)
+print (tostring(name[level]),cam_x+102,cam_y+74,6)
+--print(cam_x,cam_x,0,7)
 
 end
 

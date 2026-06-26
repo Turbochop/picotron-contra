@@ -1,4 +1,4 @@
---[[pod_format="raw",created="2026-04-07 10:50:13",modified="2026-05-29 14:55:31",revision=48]]
+--[[pod_format="raw",created="2026-04-07 10:50:13",modified="2026-06-26 07:27:17",revision=62]]
 
 --Player side-scrolling functions
 
@@ -34,28 +34,28 @@ local ply=_ply
 ply.h=ply.jumping and 6 or 8
 --end of level auto movement
 
-if clear>15 and clear<19 then 
+if clear>150 and clear<190 then 
 --ply.running=false
 --ply.dx=0
  ply.can_fire=false
 --poke(0x005580,0)
 end
 
-if clear>20 and ply.x<map_end_x+20 then 
+if clear>200 and ply.x<map_end_x+20 then 
 
 ply_run_right(ply)
 end
 
 
 
-if clear>22 and ply.x<212*8
+if clear>220 and ply.x<212*8
 and (ply.dx<.6 and not ply.falling) 
 and not ply.jumping then 
 ply.dy-=1.5
 ply.jumping=true
 end
 
-if clear>22 and (ply.x>191*8 and ply.x<192*8)
+if clear>220 and (ply.x>191*8 and ply.x<192*8)
 --and (ply.dx<.6 and not ply.falling) 
 and not ply.jumping  then 
 ply.dy-=1.8
@@ -69,6 +69,7 @@ ply.respawn+=.1
 
 if ply.respawn<15 then ply.blink+=.5
 else ply.blink=0
+ply.respawn=15
  end
  
  if ply.blink>1 then ply.blink=0
@@ -117,7 +118,7 @@ end
 
 
 --controls
-if clear<15 then 
+if clear<150 then 
  if btn(1,ply.player)  then 
 
  ply_run_right(ply)
@@ -155,7 +156,7 @@ end
  
  -- Begin a jump
  
- if ((btnp(5,ply.player) and clear<15 
+ if ((btnp(5,ply.player)
  and ply.can_jump and ply.landed) 
  or 
  (ply.x<cam_x and collide_map(ply,"right",1) 
@@ -168,9 +169,7 @@ end
       ply.jumping=true
       ply.landed=false
       ply.can_prone=false
-   if ply.prone and btn(5,ply.player) then 
-      ply.can_jump=false
-      end
+ 
 
   end
   -- Player jump buffer
@@ -234,7 +233,7 @@ function ply_aim_side(_ply)
 
 local ply= _ply
 
-if clear<15 then
+if clear<150 then
  if btn(2,ply.player) and ply.running  and not ply.jumping and not fanfare then 
  ply.aim=4
  
@@ -246,7 +245,7 @@ if clear<15 then
   then ply.aim=1
   end
    end
-   if clear>=15 or not btn(2,ply.player) then 
+   if clear>=150 or not btn(2,ply.player) then 
    if ply.running and (not ply.firing) or fanfare
    then ply.aim+=ply.anim1
  

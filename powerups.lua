@@ -1,4 +1,4 @@
---[[pod_format="raw",created="2026-02-06 05:18:16",modified="2026-04-07 07:06:33",revision=90]]
+--[[pod_format="raw",created="2026-02-06 05:18:16",modified="2026-06-26 09:03:22",revision=92]]
 
 --capsules and powerups
 function add_new_cap_spawner(_x,_y,_item)
@@ -119,6 +119,7 @@ add(pup,{
     x=_x,
     is_pup=true,
     y=_y,
+    initial_y=_y+20,
     w=8,
     owner=_owner,
     h=8,
@@ -135,7 +136,10 @@ add(pup,{
  if self.dy>2 then self.dy=2
  
  end
- 
+ if (level_type=="top down" and self.y+self.h>self.initial_y) and self.dy>0 then
+ self.dx=0	
+ self.dy=0	
+ end
 
 -- resolve_slope(self)
  

@@ -1,4 +1,4 @@
---[[pod_format="raw",created="2026-04-07 11:38:53",modified="2026-05-19 06:36:19",revision=56]]
+--[[pod_format="raw",created="2026-04-07 11:38:53",modified="2026-06-26 08:32:24",revision=117]]
 -- Common player control functions
 
 function ply_run_left(_ply)
@@ -95,7 +95,7 @@ ply_weapon(ply)
 end
 end
 
---death
+--death (side scrolling)
 
 function ply_dead(_ply)
 
@@ -113,6 +113,11 @@ timer=0
 ply.prone=false
 ply.rapid=false
 ply.respawn=0
+ply.td_death_y=flr(ply.y+30)
+if ply.td_death_y+16>cam_y+120 then
+	ply.td_death_y=cam_y+120
+end
+ 
 --ply.dx-=1
 --ply.dy-=2
 ply.y-=3
@@ -134,9 +139,10 @@ local ply=_ply
  ply.y+=ply.dy
  ply.dy+=grav
  ply.dx*=ply.fric
+ ply.td_death+=(ply.td_death<35) and 1 or 0
  ply.dx=limit_speed(ply.dx,ply.max_dx)%.5
  ply.dy=limit_speed(ply.dy,ply.max_dy)
- ply.jump=1.2
+ ply.jump=(level_type=="top down") and 1.3 or 1.2
  ply.recoil=0
  ply.firing=false
  ply.jumping=false
@@ -147,7 +153,11 @@ if collide_map(ply,"down",6) or collide_map(ply,"down",7) then
     ply.on_slope = true
 
 end       
-
+if ply.td_death>=15 then
+	if ply.td_death%7==0 then
+		ply.td_death_frame+=(ply.td_death_frame~=4) and 1 or 0
+	end
+end
  
  if timer <.1 then timer+=.0001
  
@@ -155,7 +165,7 @@ end
 if timer<=.0001 then ply.dy-=ply.jump
 end
 
-  
+if level_type~="top down" then  
 -- death throw direction
 
 if not ply.flp0 then ply.dx-=ply.acc1+.4
@@ -165,11 +175,16 @@ end
 -- death throw animation
 
  flipping_anim(ply)
-
+end
   --death movement collide
-  
+   if (level_type=="top down" and ply.y>ply.td_death_y) and ply.dy>0 then
+     
+      ply.dx=0
+      ply.dy=0
+--      ply.y = flr((ply.y + ply.h) / 8) * 8 - ply.h
+    end
 ---[[
-  if (collide_map(ply,"down",0) or ply.on_slope) and ply.dy>0 then
+  if (collide_map(ply,"down",0) or ply.on_slope) and ply.dy>0 and level_type~="top down" then
      
       ply.dx=0
       ply.dy=0
@@ -198,9 +213,9 @@ end
     ply.prone=true
     end 
     if (ply.prone and ply.dead) or ply.y>cam_y+128  then 
-    ply.respawn+=.01
+    ply.respawn+=1
     end
-    if ply.respawn>=1 and ply.lives~=0 then
+    if ply.respawn>=110 and ply.lives~=0 then
  local spawn_ok=false
 
  for s in all(effect) do
@@ -208,8 +223,16 @@ end
    s.queued=true
 
    if s.valid then
+  local vertical_scroll = scrolling=="vertical" or scrolling=="both"
     ply.x=s.x
-    ply.y=-5
+ if level_type=="top down" then
+ ply.y=s.y
+elseif vertical_scroll then
+ ply.y=s.y-20
+else
+ ply.y=cam_y-5
+end
+--    ply.y=(level_type=="side scrolling") and cam_y-5 or s.y-20
     ply.respawn=0
     s.queued=false
     spawn_ok=true
@@ -220,7 +243,14 @@ end
  if spawn_ok then
   ply.lives-=1
   ply.falling=true
-  ply.jumping=false
+  if level_type=="side scrolling" then
+   ply.jumping=(scrolling==("vertical" or "both")) and true or false
+   end
+   ply.td_death=0
+  ply.td_death_frame=1
+  if level_type=="top down" then
+  	ply.aim_dir="up"
+  end
   ply.flp0=false
   ply.flp1=false
   ply.dx=2.5
@@ -232,7 +262,7 @@ end
   ply.weapon="base"
   timer=0
  end
-elseif ply.respawn>=1 and ply.lives<=0 then
+elseif ply.respawn>=100 and ply.lives<=0 then
  ply.gameover=true
     ply.dx=0
     ply.dy=0
@@ -241,44 +271,3 @@ elseif ply.respawn>=1 and ply.lives<=0 then
     ply.respawn=0
 end
 end
---    if ply.respawn>=1 and ply.lives~=0 then 
---    for s in all(effect) do
---    	if ply.player==s.id then
---    s.queued=true
---    	if (s.valid and s.queued) then
---    	 ply.y=-5
---    ply.x=s.x
---    ply.respawn=0
---    s.queued=false
---   end 
---   end
---   end
---    ply.lives-=1
---    ply.falling=true
---    ply.jumping=false
---    ply.flp0=false
---    ply.flp1=false
---   
---    ply.dx=2.5
---    ply.dy=0
---    ply.aim=0
---    ply.dead=false
---    ply.health+=1
---    --ply.respawn=0
---    ply.prone=false
---    ply.weapon="base"
---    timer=0
-----     end
---   --  end
---    elseif ply.respawn>=1 and ply.lives<=0 then
---    ply.gameover=true
---    ply.dx=0
---    ply.dy=0
---    ply.x=cam_x+20
---    ply.y=cam_y+20
---    ply.respawn=0
---    
---
--- 
---end
---end
