@@ -1,4 +1,4 @@
---[[pod_format="raw",created="2026-02-06 05:21:09",modified="2026-06-26 09:53:04",revision=131]]
+--[[pod_format="raw",created="2026-02-06 05:21:09",modified="2026-06-26 13:46:59",revision=132]]
 
 -- wipe state
 -- begins the level 
@@ -14,7 +14,7 @@ end
 
 if level==2 then
 level_type="top down"
-map_helper(0,125,30)
+map_helper(481,17,30)
 end
 end
 

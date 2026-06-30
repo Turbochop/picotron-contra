@@ -1,4 +1,4 @@
---[[pod_format="raw",created="2026-02-06 05:18:16",modified="2026-06-26 09:03:22",revision=92]]
+--[[pod_format="raw",created="2026-02-06 05:18:16",modified="2026-06-26 10:28:35",revision=93]]
 
 --capsules and powerups
 function add_new_cap_spawner(_x,_y,_item)
@@ -142,7 +142,7 @@ add(pup,{
  end
 
 -- resolve_slope(self)
- 
+ if level_type~= "top down" then
  if collide_map(self,"down",3) and self.dy>0 then
  
   self.dx=0
@@ -156,7 +156,7 @@ add(pup,{
  self.y = flr((self.y + self.h) / 8) * 8 - self.h
    
    end
-   
+   end
    
   for p in all(players)do
   

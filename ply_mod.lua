@@ -1,4 +1,4 @@
---[[pod_format="raw",created="2026-03-02 22:46:00",modified="2026-06-26 08:26:10",revision=841]]
+--[[pod_format="raw",created="2026-03-02 22:46:00",modified="2026-06-26 12:26:45",revision=893]]
 --Modular player object
 
 function create_player(_x,_y,_player)
@@ -208,7 +208,7 @@ local xframe={16,24,32,40,48,56,64,72}
 local player_sheet=1
 local offset= (level_type=="top down") and 40 or 16  
 local legoffset= (level_type=="top down") and 48 or 16  
-
+local shotoffset=( self.recoil<5 and self.firing) and 1 or 0
   
   
   
@@ -224,18 +224,24 @@ local legoffset= (level_type=="top down") and 48 or 16
  if self.water then
  spr(23,self.x,self.y+4,self.flp0,self.inv0) 
 elseif self.prone and self.recoil<5 and self.firing then
+if self.on_slope then
 
+sspr(player_sheet,56,32,8,16,self.x,self.y-7,8,16,self.flp1,self.inv1)
+else
 sspr(player_sheet,40,32,16,8,self.x-6,self.y+1,16,8,self.flp1,self.inv1)
 
+end
 
  elseif self.prone and self.dead then
 
  sspr(player_sheet,48,24,16,8,self.x-6,self.y,16,8,self.flp0,self.inv0)
 
 elseif self.prone then 
-
+if self.on_slope then
+sspr(player_sheet,56,32,8,16,self.x,self.y-8,8,16,self.flp1,self.inv1)
+else
 sspr(player_sheet,40,32,16,8,self.x-6,self.y,16,8,self.flp1,self.inv1)
-
+end
  elseif not self.jumping then
  sspr(player_sheet,xframe[flr(self.sp1)],self.dead and 24 or 32,8,8,self.x,self.y,8,8,self.flp1,self.inv1)
 end
@@ -252,6 +258,7 @@ elseif (level_type=="top down" and not self.dead) then
  
      elseif self.water then
      if not self.firing then
+   
 
      sspr(player_sheet,xframe[8],16,8,8,self.x,self.y-3,8,8,self.flp0,self.inv0)
      else

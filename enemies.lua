@@ -1,4 +1,4 @@
---[[pod_format="raw",created="2026-02-06 05:16:53",modified="2026-04-07 09:20:57",revision=345]]
+--[[pod_format="raw",created="2026-02-06 05:16:53",modified="2026-06-26 13:06:18",revision=361]]
 
 
 function add_new_ebullet(_x,_y,_dx,_dy)
@@ -28,9 +28,10 @@ add(ebullet,{
 
 else self.plyoffset= p.prone and 6 or 0
  end 
-if (p.jumping==false) self.offsetx=3 self.offsety=-2 self.offsetw=-2 self.offseth=6
+if (p.jumping==false) self.offsetx=1 self.offsety=-2 self.offsetw=-2 self.offseth=6
 if (p.jumping==true) self.offsetx=2 self.offsety=0 self.offsetw=-2 self.offseth=0
 if (p.prone==true) self.offsetx=-3 self.offsety=2 self.offsetw=4 self.offseth=-5
+if (p.prone and p.on_slope) self.offsetx=1 self.offsety=-4 self.offsetw=-2 self.offseth=4
  
 
   

@@ -1,4 +1,4 @@
---[[pod_format="raw",created="2026-02-06 05:15:57",modified="2026-06-26 08:25:55",revision=475]]
+--[[pod_format="raw",created="2026-02-06 05:15:57",modified="2026-06-26 11:22:22",revision=479]]
 --explosions and effects
   function add_controller(_x,_y)
 
@@ -224,7 +224,7 @@ add(effect,{
      x=_x,
      y=_y,
   type=_type or 1,
- delta=(_delta or 1) * rnd(1.2),
+ delta=(_delta or 1) * (rnd(1.4)+.3),
  effect=_effect or nil,
      h=8,
      w=8,

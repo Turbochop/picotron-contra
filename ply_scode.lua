@@ -1,4 +1,4 @@
---[[pod_format="raw",created="2026-04-07 10:50:13",modified="2026-06-26 07:27:17",revision=62]]
+--[[pod_format="raw",created="2026-04-07 10:50:13",modified="2026-06-26 12:42:46",revision=77]]
 
 --Player side-scrolling functions
 
@@ -273,6 +273,7 @@ end
 function aiming_side(_ply)
 
 local ply=_ply
+
 --rapid shot speed modifier
  
  ply.b_dbase=ply.rapid and 2.5 or 1.5
@@ -284,9 +285,13 @@ local ply=_ply
   ply.b_os_y=ply.y-5
   
   if ply.prone then 
+  if ply.on_slope then
+  ply.b_os_x=ply.x+5
+  ply.b_os_y=ply.y-2
+  else
   ply.b_os_x=ply.x+6
   ply.b_os_y=ply.y+4
-  
+  end
   end
 
   
@@ -350,9 +355,13 @@ local ply=_ply
   end
   
   if aim=="lt" and ply.prone then
-   
+   if not ply.on_slope then
   ply.b_os_x=ply.x-11
   ply.b_os_y=ply.y+4
+else
+ply.b_os_x=ply.x-5
+  ply.b_os_y=ply.y-2
+  end
   end
   
   if ply.jumping then

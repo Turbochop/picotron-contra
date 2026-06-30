@@ -1,4 +1,4 @@
---[[pod_format="raw",created="2026-02-06 05:20:50",modified="2026-06-26 09:51:01",revision=1362]]
+--[[pod_format="raw",created="2026-02-06 05:20:50",modified="2026-06-26 10:41:42",revision=1367]]
 --game state
 puptmr=50
 pallette=12
@@ -156,7 +156,7 @@ for b in all(bullet) do
  or b.x>=cam_x+240 
  or b.x<=cam_x-20 
  or b.y>=cam_y+132 
- or b.y<=cam_y-20 then
+ or b.y<=cam_y-10 then
 if not b.is_2nd_fire and not b.is_fire then
  add_new_shrap(b.x+4,b.y)
 end
