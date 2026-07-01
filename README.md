@@ -106,7 +106,7 @@ This is a prototype, so some systems are intentionally still moving around. Area
 
 ## AI Assistance
 
-This project occasionally uses OpenAI Codex as a development assistant for documentation, repository maintenance, code review, and implementation support. Creative direction, gameplay decisions, and final changes are reviewed and owned by turbochop.
+This project occasionally uses OpenAI Codex as a development assistant for documentation, repository maintenance, code review, and implementation support. Creative direction, gameplay decisions, and final changes are reviewed and owned by me.
 
 ## Credits
 
