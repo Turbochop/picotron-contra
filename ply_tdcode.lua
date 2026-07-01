@@ -1,4 +1,4 @@
---[[pod_format="raw",created="2026-03-02 22:46:23",modified="2026-06-26 08:21:05",revision=713]]
+--[[pod_format="raw",created="2026-03-02 22:46:23",modified="2026-07-01 04:53:25",revision=715]]
 
 --player top-down functions
 
@@ -42,7 +42,7 @@ ply.respawn=15
  
  if ply.blink>1 then ply.blink=0
  end
-player_collide_top(ply)
+
 --ply.on_slope=false
 
 
@@ -94,6 +94,7 @@ end
    end
 
      fric=.23
+     player_collide_top(ply)
   
   end
 
@@ -115,83 +116,80 @@ end
 --aiming logic 
 --and bullet offsets
 
-function aiming_top(_ply)
- local ply=_ply
+function aiming_top(ply)
+    ply.b_dbase = ply.rapid and 2.5 or 1.5
 
- ply.b_dbase = ply.rapid and 2.5 or 1.5
+    -- update intent only if pressing a direction
+    if btn(2,ply.player) then ply.aim_dir="up" end
+    if btn(3,ply.player) then ply.aim_dir="dn" end
+    if btn(1,ply.player) then ply.aim_dir="rt" end
+    if btn(0,ply.player) then ply.aim_dir="lt" end
 
- if btn(2,ply.player) or ply.aim_dir == nil then
-  ply.aim_dir="up"
-  ply.b_dy=-ply.b_dbase
-  ply.b_dx=0
-  ply.b_os_x=ply.x+2
-  ply.b_os_y=ply.y-10
- end
+    if btn(2,ply.player) and btn(0,ply.player) then ply.aim_dir="uplt" end
+    if btn(2,ply.player) and btn(1,ply.player) then ply.aim_dir="uprt" end
+    if btn(3,ply.player) and btn(0,ply.player) then ply.aim_dir="dnlt" end
+    if btn(3,ply.player) and btn(1,ply.player) then ply.aim_dir="dnrt" end
 
- if btn(3,ply.player) then
-  ply.aim_dir="dn"
-  ply.b_dy=ply.b_dbase
-  ply.b_dx=0
-  ply.b_os_x=ply.x-1
-  ply.b_os_y=ply.y
- end
-  
- if btn(1,ply.player) then  
-  ply.aim_dir="rt"
-  ply.b_dx=ply.b_dbase
-  ply.b_dy=0
-  ply.b_os_x=ply.x+5
-  ply.b_os_y=ply.y-4
- end
+    -- fallback
+    if not ply.aim_dir then ply.aim_dir="up" end
 
- if btn(0,ply.player) then 
-  ply.aim_dir="lt"
-  ply.b_dx=-ply.b_dbase
-  ply.b_dy=0
-  ply.b_os_x=ply.x-5
-  ply.b_os_y=ply.y-4
- end
+    -- always apply bullet origin from current facing
+    if ply.aim_dir=="up" then
+        ply.aim=0 ply.flp0=false
+        ply.b_dx=0
+        ply.b_dy=-ply.b_dbase
+        ply.b_os_x=ply.x+2
+        ply.b_os_y=ply.y-10
 
- if btn(2,ply.player) and btn(0,ply.player) then
-  ply.aim_dir="uplt"
-  ply.b_dy=-ply.b_dbase
-  ply.b_dx=-ply.b_dbase
-  ply.b_os_x=ply.x-4
-  ply.b_os_y=ply.y-10
- end
+    elseif ply.aim_dir=="dn" then
+        ply.aim=4 ply.flp0=false
+        ply.b_dx=0
+        ply.b_dy=ply.b_dbase
+        ply.b_os_x=ply.x-1
+        ply.b_os_y=ply.y
 
- if btn(1,ply.player) and btn(2,ply.player) then
-  ply.aim_dir="uprt"
-  ply.b_dy=-ply.b_dbase
-  ply.b_dx=ply.b_dbase
-  ply.b_os_x=ply.x+4
-  ply.b_os_y=ply.y-10
- end
+    elseif ply.aim_dir=="rt" then
+        ply.aim=2 ply.flp0=false
+        ply.b_dx=ply.b_dbase
+        ply.b_dy=0
+        ply.b_os_x=ply.x+5
+        ply.b_os_y=ply.y-4
 
- if btn(3,ply.player) and btn(0,ply.player) then
-  ply.aim_dir="dnlt"
-  ply.b_dy=ply.b_dbase
-  ply.b_dx=-ply.b_dbase
-  ply.b_os_x=ply.x-5
-  ply.b_os_y=ply.y-1
- end
+    elseif ply.aim_dir=="lt" then
+        ply.aim=2 ply.flp0=true
+        ply.b_dx=-ply.b_dbase
+        ply.b_dy=0
+        ply.b_os_x=ply.x-5
+        ply.b_os_y=ply.y-4
 
- if btn(3,ply.player) and btn(1,ply.player) then
-  ply.aim_dir="dnrt"
-  ply.b_dy=ply.b_dbase
-  ply.b_dx=ply.b_dbase
-  ply.b_os_x=ply.x+5
-  ply.b_os_y=ply.y-1
- end
+    elseif ply.aim_dir=="uprt" then
+        ply.aim=1 ply.flp0=false
+        ply.b_dx=ply.b_dbase
+        ply.b_dy=-ply.b_dbase
+        ply.b_os_x=ply.x+4
+        ply.b_os_y=ply.y-10
 
- if ply.aim_dir=="up"   then ply.aim=0 ply.flp0=false end
- if ply.aim_dir=="uprt" then ply.aim=1 ply.flp0=false end
- if ply.aim_dir=="rt"   then ply.aim=2 ply.flp0=false end
- if ply.aim_dir=="dnrt" then ply.aim=3 ply.flp0=false end
- if ply.aim_dir=="dn"   then ply.aim=4 ply.flp0=false end
- if ply.aim_dir=="dnlt" then ply.aim=3 ply.flp0=true  end
- if ply.aim_dir=="lt"   then ply.aim=2 ply.flp0=true  end
- if ply.aim_dir=="uplt" then ply.aim=1 ply.flp0=true  end
+    elseif ply.aim_dir=="uplt" then
+        ply.aim=1 ply.flp0=true
+        ply.b_dx=-ply.b_dbase
+        ply.b_dy=-ply.b_dbase
+        ply.b_os_x=ply.x-4
+        ply.b_os_y=ply.y-10
+
+    elseif ply.aim_dir=="dnrt" then
+        ply.aim=3 ply.flp0=false
+        ply.b_dx=ply.b_dbase
+        ply.b_dy=ply.b_dbase
+        ply.b_os_x=ply.x+5
+        ply.b_os_y=ply.y-1
+
+    elseif ply.aim_dir=="dnlt" then
+        ply.aim=3 ply.flp0=true
+        ply.b_dx=-ply.b_dbase
+        ply.b_dy=ply.b_dbase
+        ply.b_os_x=ply.x-5
+        ply.b_os_y=ply.y-1
+    end
 end
  
 

@@ -1,5 +1,5 @@
---[[pod_format="raw",created="2025-02-02 19:06:08",modified="2026-06-26 14:04:06",revision=697]]
---contra concept 
+--[[pod_format="raw",created="2025-02-02 19:06:08",modified="2026-07-01 14:25:28",revision=776]]
+--contra concept
 --by turbochop
 --graphics work
 --by reecegames
@@ -27,14 +27,32 @@ function _init()
 
 
  vid(3)
-   mgun,rapid,spread,fire=27,28,29,31  
- 
+   mgun,rapid,spread,fire=27,28,29,31
+
    players={}
+  lifepool=3
+
+   player_state = {
+    [0] = {
+        copied=false,
+        respawn=0,
+        lives = lifepool,
+        weapon = "base",
+        rapid=false
+    },
+    [1] = {
+        copied=false,
+        respawn=0,
+        lives = lifepool,
+        weapon = "base",
+        rapid=false
+    }
+}
  multiplayer=false
 
      --game variables
-    
-     
+
+
      --Cheat code
      code={2,2,3,3,0,1,0,1,4,4,5}
      code_used=false
@@ -42,17 +60,17 @@ function _init()
      timeout=2
     sequence=1
      correct=false
-     
-     
+
+
      effect={}
       pup={}
       bullet={}
      ebullet={}
      enemy={}
-   
+
       bfight=false
 
- 
+
      enemies=0
         grav=.07
         fric=.23
@@ -65,7 +83,7 @@ spawn_scan_x = -1
        level_type="side scrolling"
        scrolling="horizontal"
        level=1
-       song= {3,0,28,26}  
+       song= {3,0,28,26}
 scroll_dir = "right"
 scroll_front = 119
 map_end_x = 0
@@ -78,7 +96,7 @@ map_end_y = 0
       timer2=0
       timer3=0
       spawn=0
-    
+
 complete,clear=false,0
      fanfare=false
        ready=false
@@ -88,11 +106,11 @@ complete,clear=false,0
     gameover=false
     g_otimer=0
     continue=2
-    lifepool=3
+
          sel=71
-      toggle=false   
+      toggle=false
    fullreset=false
- 
+
  ------test------
  x1r=0  y1r=0  x2r=0  y2r=0
 end
@@ -106,7 +124,7 @@ function _update()
 --slow=0
 --end
 --if key("2") then
--- slow=1	
+-- slow=1
 --end
  mx, my, mouse_b = mouse()
 if fullreset then full_reset()
@@ -125,7 +143,7 @@ end
 
 function _draw()
 palt(30,true)
-
+local lifetext=(player_state[0].lives~=1) and " lives" or " life"
 if (scene=="title")   draw_title() palt()
 if (scene=="game")    draw_game()  palt()
 if (scene=="wipe")    draw_wipe()  palt()
@@ -133,22 +151,43 @@ if (scene=="card")     draw_card() palt()
 if (scene=="gameover")  draw_gameover()  palt()
 if (scene=="continue")  draw_continue() palt()
 if (scene=="end")       draw_end()  palt()
-
+--print(player_state[0].lives..lifetext,cam_x,50,7)
+--print("weapon is "..player_state[0].weapon,cam_x,60,7)
+--print("rapid is "..tostring(player_state[0].rapid),cam_x,70,7)
+--print("copied is "..tostring(player_state[0].copied),cam_x,80,7)
+--print("respawn is "..player_state[0].respawn,cam_x,90,7)
 end
 
 
 
 function full_reset()
-    mgun,rapid,spread,fire=27,28,29,31  
+    mgun,rapid,spread,fire=27,28,29,31
 
  players={}
+   lifepool=3
+   player_state = {
+    [0] = {
+        copied=false,
+        respawn=0,
+        lives = lifepool,
+        weapon = "base",
+        rapid=false
+    },
+    [1] = {
+        copied=false,
+        respawn=0,
+        lives = lifepool,
+        weapon = "base",
+        rapid=false
+    }
+}
  multiplayer=false
      --game variables
         b_dx=1.5
         b_dy=1.5
-       
+
      b_dbase=1.5
-     
+
      --Cheat code
      code={2,2,3,3,0,1,0,1,4,4,5}
      code_used=false
@@ -158,7 +197,7 @@ function full_reset()
      correct=false
      prompt=1
      badgex=7
-  
+
     effect={}
       pup={}
       bullet={}
@@ -198,14 +237,14 @@ complete,clear=false,0
        title=0
     gameover=false
     continue=2
-    lifepool=3
+
          sel=71
-      toggle=false   
+      toggle=false
  fullreset=false
 end
 
 function level_reset()
-   
+
 
         players={}
          effect={}
@@ -215,20 +254,20 @@ function level_reset()
           enemy={}
 visual_layer_1 = {}
         enemies=0
-         bfight=false  
+         bfight=false
   reset_camera_state()
    spawn_layer = {}
   spawn_scan_x = -1
       map_start=0
           timer=0
          timer1=0
-     
+
       timer2=0
       timer3=0
       spawn=0
       blink=0
 complete,clear=false,0
      fanfare=false
-     toggle=false   
+     toggle=false
 
 end

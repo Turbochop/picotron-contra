@@ -1,4 +1,4 @@
---[[pod_format="raw",created="2026-02-06 05:21:36",modified="2026-06-26 04:00:00",revision=488]]
+--[[pod_format="raw",created="2026-02-06 05:21:36",modified="2026-07-01 13:04:43",revision=523]]
 prompt=1
 badgex=7
 --title, card, end and gameover
@@ -115,6 +115,8 @@ function konami_code()
       if sequence==12 then
         sfx(259,8)
         lifepool=30
+        player_state[0].lives=lifepool
+        player_state[1].lives=lifepool
         reset_konami()
         code_used=true
       end
@@ -140,7 +142,7 @@ for o in all(obj) do
   end
 spr(254,20,10)
 ---[[
---print(cam_x,0,0,7)
+
 --print(tostring(correct),0,16,7)
 --print(input,0,24,7)
 --print(ply.lives,0,8,7)
@@ -190,8 +192,15 @@ end
 function draw_card()
 cls(0)
 local name={"JUNGLE", " BASE"}
+
 camera(0,0)
-print ("STAGE "..level,cam_x+100,cam_y+64,6)
+print("Player 1",cam_x+20,cam_y+10,6)
+print("Rest "..player_state[0].lives,cam_x+20,cam_y+20,6)
+if multiplayer then
+	print("Player 2",cam_x+170,cam_y+10,6)
+print("Rest "..player_state[1].lives,cam_x+170,cam_y+20,6)
+end
+print ("AREA "..level,cam_x+103,cam_y+64,6)
 print (tostring(name[level]),cam_x+102,cam_y+74,6)
 --print(cam_x,cam_x,0,7)
 
@@ -267,7 +276,10 @@ end
 if btnp(5) and sel==71 then
 cam_x=0
 continue-=1
+
 lifepool=code_used and 30 or 3
+player_state[0].lives=lifepool
+player_state[1].lives=lifepool
 scene="card"
 
 timer=0

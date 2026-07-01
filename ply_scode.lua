@@ -1,4 +1,4 @@
---[[pod_format="raw",created="2026-04-07 10:50:13",modified="2026-06-26 12:42:46",revision=77]]
+--[[pod_format="raw",created="2026-04-07 10:50:13",modified="2026-07-01 10:47:02",revision=89]]
 
 --Player side-scrolling functions
 
@@ -289,8 +289,8 @@ local ply=_ply
   ply.b_os_x=ply.x+5
   ply.b_os_y=ply.y-2
   else
-  ply.b_os_x=ply.x+6
-  ply.b_os_y=ply.y+4
+  ply.b_os_x=ply.x+7
+  ply.b_os_y=ply.y+2
   end
   end
 
@@ -300,7 +300,7 @@ local ply=_ply
   ply.b_dy=-ply.b_dbase
   ply.b_dx=0
   ply.b_os_x=ply.x
-  ply.b_os_y=ply.y-7
+  ply.b_os_y=ply.y-12
   end
   
   if btn(2,ply.player) and btn(1,ply.player) then
@@ -316,7 +316,7 @@ local ply=_ply
   ply.b_dy=ply.b_dbase
   ply.b_dx=ply.b_dbase
   ply.b_os_x=ply.x+5
-  ply.b_os_y=ply.y+1
+  ply.b_os_y=ply.y-2
   end
   end
   if btn(0,ply.player) or ply.flp0==true 
@@ -341,7 +341,7 @@ local ply=_ply
   ply.b_dy=ply.b_dbase
   ply.b_dx=-ply.b_dbase
   ply.b_os_x=ply.x-5
-  ply.b_os_y=ply.y+1
+  ply.b_os_y=ply.y-2
   end
   end
   if btn(3,ply.player) and not ply.landed
@@ -357,7 +357,7 @@ local ply=_ply
   if aim=="lt" and ply.prone then
    if not ply.on_slope then
   ply.b_os_x=ply.x-11
-  ply.b_os_y=ply.y+4
+  ply.b_os_y=ply.y+2
 else
 ply.b_os_x=ply.x-5
   ply.b_os_y=ply.y-2

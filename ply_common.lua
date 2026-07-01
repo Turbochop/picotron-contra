@@ -1,4 +1,4 @@
---[[pod_format="raw",created="2026-04-07 11:38:53",modified="2026-06-26 08:32:24",revision=117]]
+--[[pod_format="raw",created="2026-04-07 11:38:53",modified="2026-07-01 11:56:16",revision=166]]
 -- Common player control functions
 
 function ply_run_left(_ply)
@@ -45,19 +45,28 @@ function ply_fire(_ply)
 local ply=_ply
 
 
-if ply.refire>9 then ply.refire=9
+if ply.refire>ply.max_refire and ply.weapon=="mgun" then ply.refire=0
 end
-if ply.refire==ply.max_refire  then
-ply.refire=0
+if ply.refire>=ply.max_refire  then
+ply.refire=ply.max_refire
 
 end
+
+
 
 
 if btn(4,ply.player) then ply.refire+=1
 else ply.refire=0
 end
 
-
+-- fire weapon: allow held button to create a new charge
+-- as soon as the bullet slot opens
+if ply.weapon == "fire"
+and btn(4, ply.player)
+and ply.bullets < ply.max_bullets
+and ply.refire > 1 then
+    ply.refire = 1
+end
 
 
 if ply.refire==1 and ply.bullets<ply.max_bullets then
@@ -72,6 +81,9 @@ else ply.can_fire=false
 
 
 end
+if ply.jam then
+	ply.refire=ply.max_refire-7
+end
 if ply.firing and ply.recoil<20 then
 ply.recoil+=1
 end
@@ -82,14 +94,22 @@ ply.firing=false
 end 
 
 
+if not btn(4,ply.player) and ply.jam then
+ply.refire=0
+ply.firing=false
+ply.can_fire=true
+
+	ply.jam=false
+end
 
 
-
-if btn(4,ply.player) and ply.can_fire 
+if btn(4,ply.player) and ply.can_fire
 
  then 
+ if ply.weapon~="fire" then
 ply.firing=true
 ply.recoil=0
+end
 ply_weapon(ply)
 
 end
@@ -113,9 +133,10 @@ timer=0
 ply.prone=false
 ply.rapid=false
 ply.respawn=0
+ply.death_timer = 0
 ply.td_death_y=flr(ply.y+30)
 if ply.td_death_y+16>cam_y+120 then
-	ply.td_death_y=cam_y+120
+	ply.td_death_y=cam_y+117
 end
  
 --ply.dx-=1
@@ -159,10 +180,12 @@ if ply.td_death>=15 then
 	end
 end
  
- if timer <.1 then timer+=.0001
- 
- end  
-if timer<=.0001 then ply.dy-=ply.jump
+if ply.death_timer < .1 then
+    ply.death_timer += .0001
+end
+
+if ply.death_timer <= .0001 then
+    ply.dy -= ply.jump
 end
 
 if level_type~="top down" then  

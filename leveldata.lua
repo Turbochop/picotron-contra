@@ -1,4 +1,4 @@
---[[pod_format="raw",created="2026-06-25 20:07:31",modified="2026-06-26 07:53:15",revision=72]]
+--[[pod_format="raw",created="2026-06-25 20:07:31",modified="2026-07-01 12:28:00",revision=74]]
 function spawn_players()
 local spawnx= (level_type=="side scrolling") and cam_x or cam_x+50 
 local spawny= (level_type=="side scrolling") and cam_y or cam_y+200
