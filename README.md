@@ -104,9 +104,9 @@ This is a prototype, so some systems are intentionally still moving around. Area
 - Camera polish
 - Level pacing and transitions
 
-## AI Assistance
+## Development Notes
 
-This project occasionally uses OpenAI Codex as a development assistant for documentation, repository maintenance, code review, and implementation support. Creative direction, gameplay decisions, and final changes are reviewed and owned by me.
+This prototype is developed through iterative testing in Picotron. Creative direction, gameplay decisions, and final changes are owned by **turbochop**.
 
 ## Credits
 
