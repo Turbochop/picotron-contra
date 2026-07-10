@@ -1,4 +1,4 @@
---[[pod_format="raw",created="2026-02-06 05:15:57",modified="2026-06-26 11:22:22",revision=479]]
+--[[pod_format="raw",created="2026-02-06 05:15:57",modified="2026-07-10 21:40:10",revision=501]]
 --explosions and effects
   function add_controller(_x,_y)
 
@@ -66,6 +66,8 @@ add(effect,{
      offset=0,
      polex=32,
      poley=0,
+     player_last_x=0,
+ 	  player_last_y=0,
      type=_type or "player 1",
  
 
@@ -132,7 +134,22 @@ elseif level_type=="side scrolling" then
  	end
  end
  
+ if level_type=="side scrolling" and scroll_dir=="up" then
+ for p in all (players) do
  
+ 	if p.player==self.id and p.landed then
+     
+ 	 self.x=(p.flp0==false) and p.x-16 or p.x+16 
+ 	 self.y=p.y
+ 	  self.player_last_x=self.x
+ 	  self.player_last_y=self.y
+ 	elseif not p.landed then
+ 	self.x=self.player_last_x
+ 	self.y=self.player_last_y
+ 	
+ 	 end
+ end
+ end
 
 
  

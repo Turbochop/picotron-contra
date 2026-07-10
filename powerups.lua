@@ -1,4 +1,4 @@
---[[pod_format="raw",created="2026-02-06 05:18:16",modified="2026-06-26 10:28:35",revision=93]]
+--[[pod_format="raw",created="2026-02-06 05:18:16",modified="2026-07-10 07:16:07",revision=106]]
 
 --capsules and powerups
 function add_new_cap_spawner(_x,_y,_item)
@@ -171,7 +171,7 @@ add(pup,{
 --grant item to player 
  
   then 
-  p.rapid=false
+ -- p.rapid=false
   p.refire=0
   grant_item(self.sp,p)
   
@@ -195,10 +195,10 @@ end
  
  end,
   draw=function(self)
--- palt(30,true)
+ palt(30,true)
  spr(self.sp,self.x,self.y)
 -- palt()
--- print(self.owner,self.x,self.y,9)
+-- print(self.sp,self.x,self.y,9)
 -- rect(self.x+2,self.y-2,(self.x+self.w)-2,(self.y+self.h)+6,9)
  end
   
@@ -211,12 +211,23 @@ end
 
 function grant_item(item,_ply)
 local ply=_ply
+local prev_weapon=ply.weapon
 
 if item==27 then ply.weapon="mgun"
 elseif item==28 then ply.rapid=true
-elseif item==29 then ply.weapon="spread"
+elseif item==29 then
+
+if (ply.weapon=="spread" or ply.weapon=="spread 2") then 
+ply.weapon="spread 2"
+else
+ply.weapon="spread"
+end
+elseif item==30 then ply.weapon="laser"
 elseif item==31 then ply.weapon="fire"
 
+end
+if ply.weapon~=prev_weapon and not (prev_weapon=="spread" and ply.weapon=="spread 2") then 
+ply.rapid=false
 end
 
 end

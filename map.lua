@@ -1,4 +1,4 @@
---[[pod_format="raw",created="2026-02-24 20:03:51",modified="2026-06-26 08:53:44",revision=180]]
+--[[pod_format="raw",created="2026-02-24 20:03:51",modified="2026-07-09 03:53:14",revision=186]]
 visual_layer_1 = {}
 spawn_layer = {}
 
@@ -153,6 +153,7 @@ function spawn_enemy_from_cached_tile(map_x, map_y, sprite_id)
   [27]=function(px,py) add_new_shutter_pup(px,py,mgun) end,
   [28]=function(px,py) add_new_shutter_pup(px,py,rapid) end,
   [29]=function(px,py) add_new_shutter_pup(px,py,spread) end,
+  [30]=function(px,py) add_new_shutter_pup(px,py,laser) end,
   [31]=function(px,py) add_new_shutter_pup(px,py,fire) end,
   [72]=function(px,py) add_new_turret(px,py) end,
  }

@@ -1,4 +1,4 @@
---[[pod_format="raw",created="2026-02-06 05:16:53",modified="2026-06-26 13:06:18",revision=361]]
+--[[pod_format="raw",created="2026-02-06 05:16:53",modified="2026-07-09 04:02:18",revision=365]]
 
 
 function add_new_ebullet(_x,_y,_dx,_dy)
@@ -296,7 +296,7 @@ end,
 draw=function(self)
 
   spr(self.sp,self.x,self.y)
-  
+--  print(self.item,self.x,self.y-8,7)
  end
   
 })
@@ -739,8 +739,9 @@ if (p.prone==true) self.offsetx=-3 self.offsety=2 self.offsetw=4 self.offseth=-5
 
  
  then
- 
+ if p.health>=1 then
  p.health-=1
+ end
  add_new_exp_spawner(self.x,self.y,2,2,"instant")
  del(ebullet,self)
  end

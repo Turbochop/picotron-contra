@@ -1,4 +1,4 @@
---[[pod_format="raw",created="2026-02-06 05:21:36",modified="2026-07-01 13:04:43",revision=523]]
+--[[pod_format="raw",created="2026-02-06 05:21:36",modified="2026-07-09 06:51:55",revision=530]]
 prompt=1
 badgex=7
 --title, card, end and gameover
@@ -191,8 +191,8 @@ end
 
 function draw_card()
 cls(0)
-local name={"JUNGLE", " BASE"}
-
+local name={"JUNGLE", " BASE", "WATERFALL"}
+local xoffset = level==3 and 96 or 102
 camera(0,0)
 print("Player 1",cam_x+20,cam_y+10,6)
 print("Rest "..player_state[0].lives,cam_x+20,cam_y+20,6)
@@ -201,7 +201,7 @@ if multiplayer then
 print("Rest "..player_state[1].lives,cam_x+170,cam_y+20,6)
 end
 print ("AREA "..level,cam_x+103,cam_y+64,6)
-print (tostring(name[level]),cam_x+102,cam_y+74,6)
+print (tostring(name[level]),cam_x+xoffset,cam_y+74,6)
 --print(cam_x,cam_x,0,7)
 
 end

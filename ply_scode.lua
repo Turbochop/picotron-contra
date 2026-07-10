@@ -1,4 +1,4 @@
---[[pod_format="raw",created="2026-04-07 10:50:13",modified="2026-07-01 10:47:02",revision=89]]
+--[[pod_format="raw",created="2026-04-07 10:50:13",modified="2026-07-09 07:06:21",revision=91]]
 
 --Player side-scrolling functions
 
@@ -495,7 +495,7 @@ end
     
     end
    ---[[
-    if ply.y>=cam_y+120 then 
+    if ply.y>=cam_y+130 then 
     if clear==0 then
     ply.health=0
     else ply.dy-=2
