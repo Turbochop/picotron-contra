@@ -1,4 +1,4 @@
---[[pod_format="raw",created="2025-02-02 19:06:08",modified="2026-07-10 21:41:39",revision=832]]
+--[[pod_format="raw",created="2025-02-02 19:06:08",modified="2026-07-24 09:48:25",revision=861]]
 --contra concept 
 --by turbochop
 --graphics work
@@ -27,7 +27,7 @@ function _init()
 
 
  vid(3)
-   mgun,rapid,spread,laser,fire=27,28,29,30,31  
+   mgun,rapid,spread,laser,fire,homing=27,28,29,30,31,37  
  
    players={}
   lifepool=3

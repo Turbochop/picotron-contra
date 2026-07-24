@@ -1,4 +1,4 @@
---[[pod_format="raw",created="2026-02-06 05:16:53",modified="2026-07-09 04:02:18",revision=365]]
+--[[pod_format="raw",created="2026-02-06 05:16:53",modified="2026-07-18 06:34:55",revision=369]]
 
 
 function add_new_ebullet(_x,_y,_dx,_dy)
@@ -80,6 +80,7 @@ add(enemy,{
  x=_x*8,
  y=_y*8,
  is_turret=true,
+ targetable=true,
  w=16,
  h=16,
  dx=.6,
@@ -245,6 +246,7 @@ add(enemy,{
  life=1,
  timer=0,
  sp=100,
+ targetable=false,
  open=true,
  
  
@@ -291,7 +293,7 @@ mset(self.x/8,(self.y+8)/8,154)
 mset((self.x+8)/8,(self.y+8)/8,155)
  del(enemy,self)
  end
- 
+ self.targetable=self.open
 end,
 draw=function(self)
 
@@ -309,6 +311,7 @@ add(enemy,{
  x=_x,
  y=_y,
  is_runner=true,
+ targetable=true,
  w=8,
  h=8,
  dx=_dx,
@@ -525,6 +528,7 @@ add(enemy,{
      w=8,
      h=16,
      is_boss=true,
+     targetable=true,
   life=100,
  timer=0,
 timer1=0,
@@ -601,6 +605,7 @@ add(enemy,{
  x=_x*8,
  y=_y*8,
  is_cannon=true,
+ targetable=true,
  w=8,
  h=8,
  life=20,
@@ -653,6 +658,7 @@ add(enemy,{
  x=_x,
  y=_y,
  is_cannon=true,
+ targetable=true,
  w=8,
  h=8,
  life=20,

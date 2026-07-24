@@ -1,4 +1,4 @@
---[[pod_format="raw",created="2026-04-07 11:38:53",modified="2026-07-09 07:05:31",revision=170]]
+--[[pod_format="raw",created="2026-04-07 11:38:53",modified="2026-07-18 05:42:31",revision=171]]
 -- Common player control functions
 
 function ply_run_left(_ply)
@@ -45,7 +45,7 @@ function ply_fire(_ply)
 local ply=_ply
 
 
-if ply.refire>ply.max_refire and ply.weapon=="mgun" then ply.refire=0
+if ply.refire>ply.max_refire and (ply.weapon=="mgun" or ply.weapon=="homing") then ply.refire=0
 end
 if ply.refire>=ply.max_refire  then
 ply.refire=ply.max_refire

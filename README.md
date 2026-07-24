@@ -1,116 +1,94 @@
 # Contra
 
-A Picotron/Lua Contra-style action prototype by **turbochop**, with graphics work by **reecegames**.
+A Picotron run-and-gun action game by **turbochop**, with graphics work by **reecegames**.
 
-This is an active cartridge project focused on recreating the feel of classic run-and-gun Contra movement, shooting, enemies, powerups, screen flow, and staged level progression inside Picotron.
+Fight through enemy soldiers, turrets, cannons, and flying capsules in a fast-moving tribute to classic Contra. Run, jump, go prone, grab weapon upgrades, and bring in a second player when the shooting gets heavy.
 
 ![Contra cart](contra.p64.png)
 
-## Current State
+## Play the Latest Build
 
-The current build starts with a title screen and level card, then moves into a side-scrolling Jungle stage. Work is also underway on a top-down Base-style stage and a vertical Waterfall stage.
+Download `contra.p64.png`, open it in Picotron, and run the cartridge.
 
-Implemented or in progress:
+The game opens with a title screen and player-select flow before launching into the side-scrolling Jungle stage. Additional Base and Waterfall stage work is included and continues to evolve.
 
-- Side-scrolling player movement, jumping, prone/crouch behavior, slope handling, firing, recoil, deaths, respawns, and continues
-- Early top-down movement and aiming support
-- One-player and two-player start flow
-- Enemy runners, turrets, cannons, bullets, capsules, pickups, and effects
-- Weapon and powerup systems, including machine gun, rapid, spread, laser, and fire
-- Camera logic for horizontal, vertical, and mixed scrolling experiments
-- Layered map drawing, map caching, and spawn streaming
-- Stage intro wipes, level cards, game over, continue, and end-state scenes
+## Gameplay
 
-## Running The Project
-
-This repository is a Picotron cartridge/project export. Open it from Picotron as a local project/cart and run the main cartridge entry point.
-
-The current development baseline starts from:
-
-```lua
-level_type = "side scrolling"
-scrolling = "horizontal"
-level = 1
-```
-
-Level intro images are selected in `wipe.lua` with `map_helper(...)`.
+- Fast side-scrolling movement, jumping, crouching, prone fire, aiming, recoil, deaths, respawns, and continues
+- One-player and two-player modes, with support for player 2 joining during gameplay
+- Enemy runners, turrets, cannons, bosses, bullets, destructible targets, flying capsules, and weapon pickups
+- Horizontal, vertical, and top-down stage systems
+- Stage cards, transitions, game-over and continue screens, and an end-state sequence
 
 ## Controls
 
-Picotron button numbers are used internally, but the gameplay mapping is:
+- **Directional controls:** Move and aim
+- **Down while grounded:** Go prone, or crouch on a slope
+- **Jump button:** Jump
+- **Fire button:** Shoot
 
-- Move left/right in side-scrolling stages
-- Press down while grounded to go prone, or crouch when on a slope
-- Jump
-- Fire
-- In top-down stages, move and aim with the directional controls
+Top-down stages use the directional controls for movement and aiming. The title screen lets you choose one or two players, and player 2 can join during gameplay when the current game state allows it.
 
-The title flow supports selecting one-player or two-player mode. Player 2 can also join during gameplay when the current state allows it.
+## Weapons
 
-## Project Layout
+- **Base rifle:** Reliable standard fire
+- **Machine gun:** Faster sustained shooting
+- **Rapid:** Improves firing speed
+- **Spread:** Fires a wider multi-shot pattern; collecting it again upgrades it to a stronger five-shot version
+- **Laser:** Fires linked laser segments with its own visual and collision behavior
+- **Fire:** Launches explosive fire projectiles
+- **Homing missiles:** Fires paired missiles that seek nearby targets
 
-- `main.lua` - boot setup, global state, scene routing, and reset helpers
-- `game.lua` - main gameplay update loop, entity updates, bullets, collisions, and level completion flow
-- `ply_mod.lua` - player object creation and player drawing
-- `ply_common.lua` - shared player behavior such as firing, death, respawn, and movement helpers
-- `ply_scode.lua` - side-scrolling player movement, aiming, collision, and animation
-- `ply_tdcode.lua` - top-down player movement, aiming, collision, and animation
-- `weapons.lua` - player weapons and projectile creation
-- `enemies.lua` - enemy objects, enemy bullets, AI, and enemy collision logic
-- `powerups.lua` - capsules, pickups, and powerup behavior
-- `effects.lua` - explosions, shrapnel, spawners, particles, and other visual effects
-- `camera.lua` - camera following and scroll behavior
-- `map.lua` - map helpers, cached layer drawing, spawn scanning, and map utilities
-- `leveldata.lua` - level setup and stage-specific data
-- `cards.lua` - title screen, stage cards, game over, continue, and ending screens
-- `wipe.lua` - stage intro wipe setup and transitions
-- `collision.lua` - shared collision helpers
-- `gfx/` - Picotron graphics data
-- `map/` - Picotron map data
-- `sfx/` - Picotron sound data
+### New Homing Missiles
 
-## Recent Changes
+The latest build adds a complete homing-missile weapon:
 
-Recent work includes:
+- New homing weapon capsule and stage placement
+- Paired missiles that launch with a slight spread before steering
+- Automatic selection of the nearest valid target
+- Live tracking of moving enemies and last-known-position behavior when a target disappears
+- Variable steering and speed that give individual missiles slightly different flight paths
+- Orbit detection and corrective movement to help missiles break out of circles
+- New directional missile sprites for horizontal, vertical, and diagonal flight
+- Player-specific missile colors and updated firing sounds
+- A jittery lock indicator that makes the target feel actively tracked
 
-- Added laser weapon support, including pickup mapping, firing behavior, projectile segments, palette effects, and collision handling
-- Reworked spread weapon progression so a second spread pickup upgrades to a stronger `spread 2` pattern
-- Added Waterfall stage setup as level 3, with a matching level-card label and vertical scrolling configuration
-- Updated powerup behavior so weapon changes reset rapid fire only when appropriate
-- Adjusted player, enemy, and bullet handling for vertical scrolling, fall detection, health checks, and palette reset behavior
-- Refreshed cart, graphics, map, and sound data to match the current Picotron build
+Targeting support was added across runners, turrets, cannons, bosses, open shutters, and flying capsules. Closed shutters are ignored until they become vulnerable.
 
-Useful current references:
+## Other Recent Changes
 
-```lua
--- main.lua
-level_type = "side scrolling"
-scrolling = "horizontal"
-scroll_dir = "left"
+- Added new missile, pickup, map, and sound data to the packaged cartridge
+- Added homing pickups to the Jungle stage and map spawn system
+- Added a blinking palette effect to weapon capsules
+- Reset player weapon power correctly during game-over handling
+- Refined weapon sound channels and spread-shot audio
+- Adjusted the upgraded fire-projectile explosion position
+- Improved palette and transparency restoration after effects and capsule drawing
+- Kept multiplayer disabled by default while preserving the title-screen selection and player-2 drop-in flow
 
--- wipe.lua
--- level 1: side-scrolling Jungle intro
--- level 2: top-down Base intro
--- level 3: vertical Waterfall intro
-```
+## Current State
 
-## Work In Progress
+Contra is an active prototype. The Jungle stage is the most developed playable area. Top-down Base-style gameplay, the vertical Waterfall stage, bosses, level pacing, camera behavior, multiplayer edge cases, and collision tuning remain under active development.
 
-This is a prototype, so some systems are intentionally still moving around. Areas under active iteration include:
+Expect ongoing changes as stages and systems are tested in Picotron.
 
-- Slope and collision tuning
-- Top-down stage behavior
-- Vertical and mixed scrolling support
-- Spawn placement and enemy scripting
-- Multiplayer edge cases
-- Camera polish
-- Level pacing and transitions
+## For Developers
 
-## Development Notes
+The repository is a Picotron cartridge/project export:
 
-This prototype is developed through iterative testing in Picotron. Creative direction, gameplay decisions, and final changes are owned by **turbochop**.
+- `main.lua` — boot setup, global state, and scene routing
+- `game.lua` — gameplay loop and level flow
+- `ply_*.lua` — player objects, movement, aiming, and shared behavior
+- `weapons.lua` — weapons and projectiles, including homing missiles
+- `enemies.lua` — enemies, enemy bullets, and targeting eligibility
+- `powerups.lua` — capsules, pickups, and weapon upgrades
+- `effects.lua` — explosions, particles, spawners, and visual effects
+- `camera.lua` — camera following and scrolling
+- `map.lua` and `leveldata.lua` — map spawning and stage setup
+- `cards.lua` and `wipe.lua` — title, stage, continue, ending, and transition screens
+- `gfx/`, `map/`, and `sfx/` — Picotron graphics, map, and sound data
 
 ## Credits
 
-- Code and game design: **turbochop**
+- Code, game design, and creative direction: **turbochop**
 - Graphics work: **reecegames**

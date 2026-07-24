@@ -1,4 +1,4 @@
---[[pod_format="raw",created="2026-02-06 05:20:50",modified="2026-07-10 07:13:28",revision=1441]]
+--[[pod_format="raw",created="2026-02-06 05:20:50",modified="2026-07-24 09:28:14",revision=1445]]
 --[[pod_format="raw",created="2026-02-06 05:20:50",modified="2026-07-01 13:27:00",revision=1414]]
 --game state
 puptmr=50
@@ -77,7 +77,7 @@ end
 
  
  if spawn==1 then
- 
+-- add_controller(0,0)
  level_setup(level)
  
 

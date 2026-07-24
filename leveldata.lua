@@ -1,4 +1,4 @@
---[[pod_format="raw",created="2026-06-25 20:07:31",modified="2026-07-09 06:57:24",revision=81]]
+--[[pod_format="raw",created="2026-06-25 20:07:31",modified="2026-07-24 09:27:21",revision=82]]
 function spawn_players()
 local spawnx= (level_type=="side scrolling") and cam_x or cam_x+50 
 local spawny= (level_type=="side scrolling") and cam_y or cam_y+200
@@ -42,7 +42,7 @@ spawn_players()
  add_new_cap_spawner(32,3,spread)
  add_new_cap_spawner(59,4,rapid)
  add_new_cap_spawner(100,9,rapid)
- add_new_cap_spawner(166,4,mgun)
+ add_new_cap_spawner(166,4,homing)
  add_new_cap_spawner(166,8,laser)
  end
  
