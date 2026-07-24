@@ -1,4 +1,4 @@
---[[pod_format="raw",created="2026-02-06 05:18:16",modified="2026-07-10 07:16:07",revision=106]]
+--[[pod_format="raw",created="2026-02-06 05:18:16",modified="2026-07-24 09:32:41",revision=120]]
 
 --capsules and powerups
 function add_new_cap_spawner(_x,_y,_item)
@@ -52,6 +52,7 @@ add(enemy,{
       h=8,
      dx=_dx,
      is_cap=true,
+     targetable=true,
      owner=_owner or 0,
      dy=-1,
    life=1,
@@ -196,8 +197,12 @@ end
  end,
   draw=function(self)
  palt(30,true)
+ if global_timer%14>=7 then
+ pal(8,20)
+ end 
  spr(self.sp,self.x,self.y)
--- palt()
+pal()
+palt(30,true)
 -- print(self.sp,self.x,self.y,9)
 -- rect(self.x+2,self.y-2,(self.x+self.w)-2,(self.y+self.h)+6,9)
  end
@@ -224,6 +229,7 @@ ply.weapon="spread"
 end
 elseif item==30 then ply.weapon="laser"
 elseif item==31 then ply.weapon="fire"
+elseif item==37 then ply.weapon="homing"
 
 end
 if ply.weapon~=prev_weapon and not (prev_weapon=="spread" and ply.weapon=="spread 2") then 

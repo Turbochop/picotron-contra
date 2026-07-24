@@ -1,4 +1,4 @@
---[[pod_format="raw",created="2026-03-02 22:46:00",modified="2026-07-09 08:07:41",revision=1029]]
+--[[pod_format="raw",created="2026-03-02 22:46:00",modified="2026-07-24 09:16:42",revision=1032]]
 --Modular player object
 
 function save_player_state(p)
@@ -179,7 +179,7 @@ add_new_cannon(211,8)
  end
  
  if self.gameover then
- --reset_player_power(self.player)
+ reset_player_power(self.player)
 -- self.timer+=.01
  self.timer1+=.01
  if self.timer1>=.1 then self.timer1=0
@@ -352,7 +352,7 @@ palt(30,true)
 
 --palt()
   end
--- print(self.spread_up,self.x,self.y,7)
+-- print(self.weapon,self.x,self.y,7)
 -- print(self.rapid,cam_x,cam_y,7)
   end
  })

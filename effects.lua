@@ -1,4 +1,4 @@
---[[pod_format="raw",created="2026-02-06 05:15:57",modified="2026-07-10 21:40:10",revision=501]]
+--[[pod_format="raw",created="2026-02-06 05:15:57",modified="2026-07-18 10:53:01",revision=502]]
 --explosions and effects
   function add_controller(_x,_y)
 
@@ -39,6 +39,7 @@ palt(0,false)
  	rectfill(self.x+26,self.y+10,self.x+29,self.y+13,10)
  end
 palt()
+palt(30,true)
  end
   
 })
