@@ -1,4 +1,4 @@
---[[pod_format="raw",created="2026-02-06 05:21:36",modified="2026-07-09 06:51:55",revision=530]]
+--[[pod_format="raw",created="2026-02-06 05:21:36",modified="2026-08-30 00:49:07",revision=538]]
 prompt=1
 badgex=7
 --title, card, end and gameover
@@ -191,7 +191,7 @@ end
 
 function draw_card()
 cls(0)
-local name={"JUNGLE", " BASE", "WATERFALL"}
+local name={"JUNGLE","LOGISTICS", "  BASE", "WATERFALL"}
 local xoffset = level==3 and 96 or 102
 camera(0,0)
 print("Player 1",cam_x+20,cam_y+10,6)
@@ -280,6 +280,7 @@ continue-=1
 lifepool=code_used and 30 or 3
 player_state[0].lives=lifepool
 player_state[1].lives=lifepool
+level_reset()
 scene="card"
 
 timer=0

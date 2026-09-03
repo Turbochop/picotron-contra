@@ -1,8 +1,9 @@
---[[pod_format="raw",created="2026-04-07 11:38:53",modified="2026-07-18 05:42:31",revision=171]]
+--[[pod_format="raw",created="2026-04-07 11:38:53",modified="2026-08-29 21:24:39",revision=261]]
 -- Common player control functions
 
 function ply_run_left(_ply)
 local ply=_ply
+
 	 ply.timer+=.08
     ply.dx-=ply.acc1
     ply.running=true
@@ -13,6 +14,7 @@ end
 
 function ply_run_right(_ply)
 local ply=_ply
+
 
 	   ply.timer+=.08
     ply.dx+=ply.acc1
@@ -71,7 +73,7 @@ end
 
 if ply.refire==1 and ply.bullets<ply.max_bullets then
 ply.can_fire=true
-if (ply.prone and ply.water) or fanfare  then
+if (ply.prone and ply.water) or  (complete and clear>=150)  then
 
 ply.can_fire=false
 else ply.can_fire=true 
@@ -81,7 +83,7 @@ else ply.can_fire=false
 
 
 end
-if ply.jam then
+if (ply.jam or  (complete and clear>=150))  then
 	ply.refire=ply.max_refire-7
 end
 if ply.firing and ply.recoil<20 then
@@ -103,7 +105,7 @@ ply.can_fire=true
 end
 
 
-if btn(4,ply.player) and ply.can_fire
+if btn(4,ply.player) and ply.can_fire 
 
  then 
  if ply.weapon~="fire" then
@@ -120,19 +122,22 @@ end
 function ply_dead(_ply)
 
 local ply=_ply
-
+ply.landed=false
+ply.jumping=false
 if ply.health<1 then 
 if ply.dead==false then
  sfx(260,11)
 ply.jframet=0
   	ply.jframe=1
-
+reset_player_power(ply.player)
 ply.health=0
 ply.dead=true
+
 timer=0
+ply.running=false
 ply.prone=false
 ply.rapid=false
-ply.respawn=0
+ply.respawn=1
 ply.death_timer = 0
 ply.td_death_y=flr(ply.y+30)
 if ply.td_death_y+16>cam_y+120 then
@@ -149,7 +154,9 @@ ply.dx=0
 ply.dy=0
   
 end
-else ply.dead=false
+else 
+ply.respawn=0
+ply.dead=false
 end
 end
  
@@ -163,7 +170,7 @@ local ply=_ply
  ply.td_death+=(ply.td_death<35) and 1 or 0
  ply.dx=limit_speed(ply.dx,ply.max_dx)%.5
  ply.dy=limit_speed(ply.dy,ply.max_dy)
- ply.jump=(level_type=="top down") and 1.3 or 1.2
+ ply.jump=((level_type=="top down" or level_type=="3d")) and 1.3 or 1.2
  ply.recoil=0
  ply.firing=false
  ply.jumping=false
@@ -175,8 +182,10 @@ if collide_map(ply,"down",6) or collide_map(ply,"down",7) then
 
 end       
 if ply.td_death>=15 then
+local step= (level_type=="top down") and 1 or 2
+local maxframe= (level_type=="3d") and 7 or 4
 	if ply.td_death%7==0 then
-		ply.td_death_frame+=(ply.td_death_frame~=4) and 1 or 0
+		ply.td_death_frame+=(ply.td_death_frame< maxframe) and step or 0
 	end
 end
  
@@ -188,7 +197,7 @@ if ply.death_timer <= .0001 then
     ply.dy -= ply.jump
 end
 
-if level_type~="top down" then  
+if level_type~="top down" and level_type~="3d"  then  
 -- death throw direction
 
 if not ply.flp0 then ply.dx-=ply.acc1+.4
@@ -196,11 +205,12 @@ else ply.dx+=ply.acc1
 
 end
 -- death throw animation
-
+if not ply.prone then
  flipping_anim(ply)
+ end
 end
   --death movement collide
-   if (level_type=="top down" and ply.y>ply.td_death_y) and ply.dy>0 then
+   if ((level_type=="top down" or level_type=="3d") and ply.y>ply.td_death_y) and ply.dy>0 then
      
       ply.dx=0
       ply.dy=0
@@ -248,15 +258,16 @@ end
    if s.valid then
   local vertical_scroll = scrolling=="vertical" or scrolling=="both"
     ply.x=s.x
- if level_type=="top down" then
- ply.y=s.y
+ if (level_type=="top down" or level_type=="3d") then
+ local player3d= (level_type=="3d") and 20 or 0
+ ply.y=s.y-player3d
 elseif vertical_scroll then
  ply.y=s.y-20
 else
  ply.y=cam_y-5
 end
 --    ply.y=(level_type=="side scrolling") and cam_y-5 or s.y-20
-    ply.respawn=0
+    
     s.queued=false
     spawn_ok=true
    end
@@ -265,19 +276,34 @@ end
 
  if spawn_ok then
   ply.lives-=1
+ 
   ply.falling=true
   if level_type=="side scrolling" then
-   ply.jumping=(scrolling==("vertical" or "both")) and true or false
+   ply.jumping=(scrolling=="vertical" or scrolling=="both") and true or false
+   if ply.scrollkill then
+   	for p in all(players) do
+   		if p.player~=ply.player then
+   			ply.x=p.x
+   			ply.y=p.y-8
+   			ply.scrollkill=false
+   		end
+   	end
+   end
    end
    ply.td_death=0
   ply.td_death_frame=1
-  if level_type=="top down" then
+  if (level_type=="top down" or level_type=="3d") then
+  	if level_type=="top down" then
   	ply.aim_dir="up"
+  	end
   end
   ply.flp0=false
   ply.flp1=false
-  ply.dx=2.5
-  ply.dy=0
+  ply.dx=0
+--  ply.dx=(level_type=="side scrolling") and 2.5 or 0
+  ply.dy= (level_type=="3d") and -2 or -.5
+  ply.jumping=true
+   ply.respawn=0
   ply.aim=0
   ply.dead=false
   ply.health=1

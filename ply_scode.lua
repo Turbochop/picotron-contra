@@ -1,4 +1,4 @@
---[[pod_format="raw",created="2026-04-07 10:50:13",modified="2026-07-09 07:06:21",revision=91]]
+--[[pod_format="raw",created="2026-04-07 10:50:13",modified="2026-08-30 00:07:15",revision=344]]
 
 --Player side-scrolling functions
 
@@ -47,20 +47,20 @@ ply_run_right(ply)
 end
 
 
-
+if level_type~="3d" then
 if clear>220 and ply.x<212*8
 and (ply.dx<.6 and not ply.falling) 
 and not ply.jumping then 
 ply.dy-=1.5
 ply.jumping=true
 end
-
-if clear>220 and (ply.x>191*8 and ply.x<192*8)
---and (ply.dx<.6 and not ply.falling) 
-and not ply.jumping  then 
-ply.dy-=1.8
-ply.jumping=true
 end
+--if clear>220 and (ply.x>191*8 and ply.x<192*8)
+----and (ply.dx<.6 and not ply.falling) 
+--and not ply.jumping  then 
+--ply.dy-=1.8
+--ply.jumping=true
+--end
 
 
 --post hit invincibilty
@@ -81,12 +81,15 @@ ply.jump_t+=.1
 
 end
 
-
+if ply.landed then
+ply.dropdown=false
+end
 
 --jump down through platforms
 
 if ply.prone and btnp(5,ply.player) 
 and collide_map(ply,"down",3) then 
+   ply.dropdown=true
    ply.jumping=true
    ply.jump_t=0
    ply.can_jump=false
@@ -118,17 +121,20 @@ end
 
 
 --controls
+if not ply.advancing then
 if clear<150 then 
  if btn(1,ply.player)  then 
 
  ply_run_right(ply)
 
-    
+
 end
   
   if btn(0,ply.player) then
+ 
   ply_run_left(ply)
 
+  end
   end
    end
   if not fanfare then
@@ -146,7 +152,7 @@ end
   
   end
  
- if btn(3,ply.player) and ply.can_prone then
+ if btn(3,ply.player) and ply.can_prone and not (level_type=="3d" and bfight) then
   ply.prone=true
   
   else ply.prone=false
@@ -155,7 +161,7 @@ end
 --  or self.x-2<cam_x and 
  
  -- Begin a jump
- 
+ if not (ply.advancing or fanfare) then
  if ((btnp(5,ply.player)
  and ply.can_jump and ply.landed) 
  or 
@@ -169,9 +175,11 @@ end
       ply.jumping=true
       ply.landed=false
       ply.can_prone=false
- 
+ end
 
   end
+  
+ 
   -- Player jump buffer
 if ply.falling and not ply.jumping then ply.jbuffer=16
 end
@@ -193,7 +201,8 @@ end
  
     end
 
-   
+   if (complete and clear>=150) then ply.prone=false
+   end
  --player mid air control
  
   
@@ -237,7 +246,7 @@ if clear<150 then
  if btn(2,ply.player) and ply.running  and not ply.jumping and not fanfare then 
  ply.aim=4
  
- elseif (not ply.running) or fanfare then
+ elseif not ply.running then
   ply.aim=5
  end
  
@@ -247,7 +256,13 @@ if clear<150 then
    end
    if clear>=150 or not btn(2,ply.player) then 
    if ply.running and (not ply.firing) or fanfare
-   then ply.aim+=ply.anim1
+--  
+   then 
+--    if not ply.start_run then
+--   	ply.aim=1
+--   	ply.start_run=true
+--   end
+   ply.aim+=ply.anim1
  
   -- player body animation system
   
@@ -255,10 +270,17 @@ if clear<150 then
    end
   if ply.aim<1.11  then ply.anim1=ply.anim2
   end
-if ply.water then ply.aim=0
+if ply.water then
+ply.start_run=false
+ ply.aim=0
 end
-  else ply.aim=0 
+  else 
+--  ply.start_run=false
+  ply.aim=0
   end
+--  if level_type=="3d"  then
+--  	ply.aim=0
+--  end
  end
   if btn(3,ply.player) and ply.running and not fanfare and not ply.water then
    ply.aim=6
@@ -269,6 +291,8 @@ end
 
 --aiming logic 
 --and bullet offsets
+
+
 
 function aiming_side(_ply)
 
@@ -290,7 +314,7 @@ local ply=_ply
   ply.b_os_y=ply.y-2
   else
   ply.b_os_x=ply.x+7
-  ply.b_os_y=ply.y+2
+  ply.b_os_y=ply.y+4
   end
   end
 
@@ -308,7 +332,7 @@ local ply=_ply
   ply.b_dy=-ply.b_dbase
   ply.b_dx=ply.b_dbase
   ply.b_os_x=ply.x+5
-  ply.b_os_y=ply.y-12
+  ply.b_os_y=ply.y-11
   end
   if not ply.water then
   if btn(3,ply.player) and btn(1,ply.player) then
@@ -333,7 +357,7 @@ local ply=_ply
   ply.b_dy=-ply.b_dbase
   ply.b_dx=-ply.b_dbase
   ply.b_os_x=ply.x-5
-  ply.b_os_y=ply.y-12
+  ply.b_os_y=ply.y-11
   end
   if not ply.water then
   if btn(3,ply.player) and btn(0,ply.player) then
@@ -357,7 +381,7 @@ local ply=_ply
   if aim=="lt" and ply.prone then
    if not ply.on_slope then
   ply.b_os_x=ply.x-11
-  ply.b_os_y=ply.y+2
+  ply.b_os_y=ply.y+4
 else
 ply.b_os_x=ply.x-5
   ply.b_os_y=ply.y-2
@@ -401,10 +425,115 @@ ply.b_os_x=ply.x-5
   ply.b_os_y=ply.y-6
   
   end
+  if level_type=="3d"  then
+  
+  ply.b_os_x=ply.x+5
+  ply.b_os_y=ply.y
+  
+  end
   
 end
+
+function ply_aim_3d(_ply)
+
+local ply= _ply
+if ply.running and not (ply.aiming or ply.firing)
+   then ply.aim+=ply.anim1
+ 
+  -- player body animation system
+  
+   if ply.aim>3.85  then ply.anim1=ply.anim0
+   end
+  if ply.aim<1.11  then ply.anim1=ply.anim2
+  end
+
+  else ply.aim= (ply.aiming) and 4 or 0
+  end
+  if bfight then
+ if btn(2,ply.player) and ply.running and not ply.jumping and not fanfare then 
+ ply.aiming=true
+
+ else ply.aiming=false
+
+ end
+ 
+ end
+ 
+ if not bfight then ply.aiming=false
+ end
  
 
+ 
+  if not ply.running and not ply.jumping then
+   ply.flp0= (ply.player==1) and true or false	
+  end
+
+
+end
+ 
+function aiming_3d(_ply)
+	local ply=_ply
+
+
+ if not ply.running then
+ 	xoffset=1
+ end
+ ply.b_dx=0
+ ply.b_dy=-ply.b_dbase
+ ply.b_os_z=0
+ ply.b_dz=ply.b_dbase
+ --rapid shot speed modifier
+ ply.b_dbase=ply.rapid and 2.5 or 1.5
+  
+ if ply.player==0 then 
+ local xoffset=ply.flp0==false and 0 or 2
+ 
+  ply.b_os_x=ply.x-xoffset
+  ply.b_os_y=ply.y-10
+
+  if ply.prone then 
+ 
+  ply.b_os_x=ply.x-1
+  ply.b_os_y=ply.y
+ end
+  end
+  if ply.player==1 then 
+ 
+ ply.b_dy=-ply.b_dbase
+  ply.b_os_x=ply.x
+  ply.b_os_y=ply.y-10
+  if ply.jumping then
+  	 ply.b_os_x=ply.x
+  ply.b_os_y=ply.y
+  end
+  if ply.prone then 
+ 
+  ply.b_os_x=ply.x+1
+  ply.b_os_y=ply.y-2
+ end
+ 
+  end
+  if bfight then
+   if btn(2,ply.player) and btn(0,ply.player) then
+  aim="uplt"
+  ply.b_dy=-ply.b_dbase
+  ply.b_dx=-ply.b_dbase
+  ply.b_os_x=ply.x-5
+  ply.b_os_y=ply.y-12
+  end
+  if btn(2,ply.player) and btn(1,ply.player) then
+  aim="uprt"
+  ply.b_dy=-ply.b_dbase
+  ply.b_dx=ply.b_dbase
+  ply.b_os_x=ply.x+5
+  ply.b_os_y=ply.y-12
+  end
+  end
+    if ply.jumping then
+  	 ply.b_os_x=ply.x
+  ply.b_os_y=ply.y
+  end
+end
 
 
  
@@ -456,8 +585,9 @@ end
     if ply.running 
     and not  ply.jumping
     and not ply.falling
-    
+   
     then 
+    
       ply.sp1+=(ply.anim3)
       
     end
@@ -481,7 +611,9 @@ end
       
       --running gait
       
-      if ply.sp1>=3 and (ply.aim==4 or ply.aim==6 or ply.firing) and level_type=="side scrolling" then ply.y+=1
+      if ply.sp1>=3 and (ply.aim==4 or ply.aim==6 or ply.firing)
+     -- and (level_type=="side scrolling" or level_type=="3d")
+      and ply.running and not ply.advancing then ply.y+=1
       end 
     
     -- running off a ledge
@@ -495,8 +627,14 @@ end
     
     end
    ---[[
-    if ply.y>=cam_y+130 then 
+    if ply.y>=cam_y+120 then 
     if clear==0 then
+    
+    -- If your partner scrolled the screen up while you were standing
+    -- that's a scrollkill
+    
+    if ply.landed then ply.scrollkill=true
+    end
     ply.health=0
     else ply.dy-=2
     end
@@ -522,7 +660,7 @@ local ply=_ply
  end
  
    if ply.falling==false and ply.landed and puptmr==50 then 
-    if ply.sound<=1 and level_type=="side scrolling" then 
+    if ply.sound<=1 and (level_type=="side scrolling" or level_type=="3d") then 
     if ply.water then sfx(256,10,3,7)
     else sfx(256,10,0,2)
      
@@ -546,18 +684,16 @@ local was_on_slope = ply.on_slope
 ply.on_slope = false
 local snapped_to_semi = false
 local snapped_to_slope = false
---
- ply.dy+=grav
---
- ply.dx*=ply.fric
---end
+
+
+
 -- --map collision check up and down
    if  ply.dy>0 then
       ply.falling=true
       ply.landed=false
---      
+     
      end
---      
+      
      ply.dy=limit_speed(ply.dy,ply.max_dy)
     if collide_map(ply,"down",4)  then
       ply.water=true
@@ -569,11 +705,10 @@ local snapped_to_slope = false
      ply.y = flr((ply.y + ply.h) / 8) * 8 - ply.h
       else ply.water=false
     end  
---    
---   
+   
     if collide_map(ply,"down",0) and not ply.on_slope and ply.dy>0 then
      ply.can_jump=true
---    
+   
       ply.landed=true
       ply.jumping=false
       ply.falling=false
@@ -581,15 +716,14 @@ local snapped_to_slope = false
       ply.dy=0
       ply.y = flr((ply.y + ply.h) / 8) * 8 - ply.h
     end
---    
+    
   if collide_map(ply,"down",3) and ply.can_jump and ply.dy>0 then
---    
+   
     if not ply.landed  then
      ply.can_jump=true
---     	ply.flp1=ply.dx<0 and true or false
---   
+
       ply.landed=true
--- 
+
       ply.jumping=false
       ply.falling=false
       ply.jump=1.7
@@ -619,6 +753,14 @@ local snapped_to_slope = false
     end
 
  end
+
+if not ply.advancing then
+ ply.dy+=grav
+end
+
+
+
+ ply.dx*=ply.fric
 
 ply.x += ply.dx
 ply.y += ply.dy

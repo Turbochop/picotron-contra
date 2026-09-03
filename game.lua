@@ -1,4 +1,4 @@
---[[pod_format="raw",created="2026-02-06 05:20:50",modified="2026-07-24 09:28:14",revision=1445]]
+--[[pod_format="raw",created="2026-02-06 05:20:50",modified="2026-08-29 23:11:56",revision=1874]]
 --[[pod_format="raw",created="2026-02-06 05:20:50",modified="2026-07-01 13:27:00",revision=1414]]
 --game state
 puptmr=50
@@ -8,11 +8,26 @@ paltimer=0
 
 
  function update_game()
--- grav=(level_type=="top down") and 0 or .07 
- grav=.07 
 
-
-   spawn+=1
+  grav=.07 
+  
+  if spawn==0 then
+ 
+  
+   level_setup(level)
+  spawn_players()
+  
+  end
+  if spawn==1 then
+  	 if level==3 then
+  	for p in all(players) do
+  	add_shadow(p.x,cam_y+88,p.player)
+  	end
+  end
+  end
+  
+  spawn+=1
+  
  if spawn>=5 then 
  	spawn=5
  
@@ -24,33 +39,15 @@ paltimer=0
  	paltimer=0
  end
  
- --Debug stuff
  
 
 
---[[ 
- if mouse_b>0 then
 
- end
--- if mouse_b==3 then
-
--- end
- if mouse_b==1 and m_timer==1 then
-
--- end
-
-end
---if mouse_b==2 and m_timer==1 then
-
---end
---]]
-
-for p in all(players) do
 
 --Player 2 drop in
-
+for p in all (players) do
  if btnp(5,1) and not (multiplayer or bfight) then
-if p.player==0 and not p.dead and p.lives~=0 then
+if p.player==0 and not (p.dead or p.advancing) and (p.lives~=0 and p.respawn>=7) then
 add_player_spawner(cam_x+20, cam_y, "player 2")
 multiplayer=true
 end
@@ -59,39 +56,30 @@ end
 
 
   --level scripts
-  ---[[
+
+  if level==1 then
    if cam_x>=20 and not toggle then
  add_new_spawner(-8,7,77*8,"right") 
  add_new_spawner(239,7,77*8,"left") 
  toggle=not toggle
  end
- --]] 
-  
-   if bfight then 
- cam_x+=.5
- --map_end=217*8
  end
- 
-
-
 
  
- if spawn==1 then
--- add_controller(0,0)
- level_setup(level)
- 
 
- 
-end
 
    --level complete
  if complete==true then
+  if level==1 then
   level_clear()
+  end
   clear+=1
   
   end
 
-
+if level_type=="3d" then
+	threedee_mode_update()
+end
   
   if clear >=200 and fanfare==false then
   music(1)
@@ -109,7 +97,7 @@ end
   timer=0
   level+=1
   scene="card"
- -- music(3)
+
   
   end
 
@@ -150,32 +138,45 @@ end
 
 
 for b in all(bullet) do
-  b:update()
-  --for pl in all(players) do
-  	
-  	 if b.life<=0 
- or b.x>=cam_x+240 
- or b.x<=cam_x-20 
- or b.y>=cam_y+132 
- or b.y<=cam_y-10 then
-if not b.is_2nd_fire and not b.is_fire then
- add_new_shrap(b.x+4,b.y)
-end
- kill_bullet(b)
-    del(bullet,b)
 
- -- end
-  end
+  b:update()
+ if level_type=="3d" and perspective_3d then
+perspective_3d:project(b)
+ end
+
+  	
+if b.life<=0
+or b.x>=cam_x+240
+or b.x<=cam_x-20
+or b.y>=cam_y+132
+or b.y<=cam_y-10
+or (
+ (b.z or 0)>=57
+ and not b.is_fire
+ and not b.is_2nd_fire
+)
+then
+
+ if not b.is_2nd_fire
+ and not b.is_fire then
+  add_new_shrap(b.x+4,b.y)
+ end
+
+ kill_bullet(b)
+ del(bullet,b)
+
+end
   for c in all(enemy) do
   
    if hit (b.x+3,b.y+3,c.x+1,c.y+2,c.w-2,c.h-2)and b.life~=0 and c.is_cap then
+   c.owner=b.owner
    c.life-=1
   if not b.is_fire then 
   if not b.is_laser then
    b.life-=b.life
    end
   end
-   c.owner=b.owner
+  
    end
   
   end
@@ -184,9 +185,9 @@ end
   if hit (b.x+3,b.y+3,cn.x-2,cn.y,cn.w,cn.h) and b.life~=0 and cn.is_cannon then
    
    cn.life-=1
---    if not b.is_laser then
+
    b.life-=b.life
---   end
+
     if (b.is_fire and b.released==false) then
    		for p in all(players) do
    		local p = b.owner
@@ -194,8 +195,12 @@ end
    		p.jam=true
    	end
    end
-   if cn.life>1 then sfx(258,4,8,2)
-   sfx(258,5,10,8)
+   if cn.life>1 then
+    if puptmr==50 then
+   sfx(258,4,8,2)
+   sfx(258,5,10,6)
+   end
+   sfx(258,6,16,3)
    
    end
   
@@ -205,9 +210,14 @@ end
  
    for en in all(enemy) do
    if en.life==1 then
-  if hit (b.x+3,b.y+3,en.x,en.y-8,en.w-2,en.h+10) and (b.life~=0 or (b.is_fire and b.released)) and en.is_runner then
+  if hit (b.x+3,b.y+3,en.x,en.y-8,en.w-2,en.h+10) and (b.life~=0 or (b.is_fire 
+  and b.released)) 
+  and en.exposed --exposed is any enemy, that isn't a capsule or 
+                --a shutter, that can be shot only when not hidden, IE ducked behind cover
+                
+  then
    
-   en.life-=1
+   en.life-=en.life
   
    if (b.is_fire and b.super) then
    if b.released then
@@ -215,9 +225,7 @@ end
    b.life-=10
    end
    else
---   	b.life=100
---   	b.ready=0
---   	b.super=false
+
    	for p in all(players) do
    		local p = b.owner
    		p.refire=2
@@ -240,28 +248,25 @@ end
  
   for st in all(enemy) do
    
-   if st.life>0 and st.sp==106
+   if st.life>0 and st.sp==64
    and  hit (b.x+3,b.y+3,st.x+1,st.y+2,st.w-1,st.h-5) and b.life~=0 and st.is_shutter then
-   
+   st.owner=b.owner
    st.life-=1
    if not b.is_laser then
    b.life-=b.life
    end
-   st.owner=b.owner
+   
  end
  end
 
  for t in all(enemy) do
-  if hit (b.x+3,b.y+3,t.x+1,t.y+2,t.w-1,t.h-5) and b.life~=0 and t.is_turret then
+  if hit (b.x+3,b.y+3,t.x+1,t.y+2,t.w-1,t.h-5) and b.life~=0 and t.is_turret and (t.opened and t.deployed) then
    
    t.life-=1
---   if b.is_laser then
---   	b.segs-=1
---   end
---    if not b.is_laser then
+
     
    b.life-=b.life
---   end
+
    if (b.is_fire and b.released==false) then
    		for p in all(players) do
    		local p = b.owner
@@ -269,8 +274,12 @@ end
    		p.jam=true
    	end
    end
-   if t.life>1 then sfx(258,4,8,2)
-   sfx(258,5,10,8)
+   if t.life>1 then
+   if puptmr==50 then
+   sfx(258,4,8,2)
+   sfx(258,5,10,6)
+   end
+   sfx(258,6,16,3)
   
   
    end
@@ -285,12 +294,9 @@ end
    if bs.life>=1 then
    bs.life-=1
    end
---    if b.is_laser then
---   	b.segs-=1
---   end
---   if not b.is_laser then
+
    b.life-=b.life
---   end
+
     if (b.is_fire and b.released==false) then
    		for p in all(players) do
    		local p = b.owner
@@ -298,8 +304,14 @@ end
    		p.jam=true
    	end
    end
-   if bs.life>1 then sfx(258,4,8,2)
-   sfx(258,5,10,8)
+   if bs.life>1 then
+   if puptmr==50 then
+   sfx(258,4,8,2)
+   sfx(258,5,10,6)
+   end
+   sfx(258,6,16,3)
+   
+   
    
    
    end
@@ -334,15 +346,83 @@ if pl.x+8>cam_x+front then
    
     end
     end
+--boss spawners?
 
-  if pl.x>=193*8 and bfight==false then
+if level==1 then
+  if pl.x>=193*8 and not pl.dead and bfight==false then
  
  bfight=true
  add_boss(212,11)
  add_new_cannon(211,8)
  end
+ end
   
   end
+  
+   if level==2 and cam_y<=30 then
+   if spawn==5 and not complete then
+   music(-1,1000)
+   complete=true
+   end
+   cam_y-=.7
+--  print("Good Work!",cam_x+60,cam_y+50,6)
+  end
+  
+  -- 3d mode setup
+
+if level_type=="3d" then
+
+enemycount=0
+
+for e in all(enemy) do
+	if not e.is_shutter then
+		enemycount+=1
+	end
+end
+if spawn==4 then
+	
+if not phase_complete  then
+	local wall = (phase==5) and 30 or 10
+	wallexplosions=wall
+
+	end
+threedee_perspective_helper(11,2)
+  add_wall_destroy(11,5)
+  end
+  
+	if enemycount==0 and spawn==5 and not gameover then 
+	if not phase_complete then
+	
+	if global_timer%8==2 then
+	add_new_exp_spawner(cam_x+100+flr(rnd(20)),cam_y+48,3,2)
+	wallexplosions-=1
+	end
+
+if wallexplosions<=0  then
+
+if phase~=5 then
+sfx(263,11)
+else
+music(127)
+end
+
+	phase_complete=true
+	
+	
+		if phase==5 then complete=true
+		end
+		end
+	end
+	end
+
+if wallexplosions==0 and delay_timer<delay_timer_max then
+	delay_timer+=1
+end
+	
+end
+
+
+
 if scrolling=="both" then
 update_camera_horizontal()
 update_camera_vertical()
@@ -473,7 +553,7 @@ end
 
 function draw_game()
  cls(0)
-cls(0)
+
 
 -- draw cached layer 3 first if it's a background
 map()
@@ -481,9 +561,11 @@ map()
 if level~=0 then
 draw_cached_layer(visual_layer_1)
 end
---print(map_end_y,cam_x,cam_y,7)
---print(#pup,cam_x,cam_y,7)
 
+if ((level==3 and phase==1) or (level_type=="3d")) and not bfight then
+local offset= (phase_complete) and 1 or 0
+	spr((247+offset)+screen)
+end
 
  for eb in all(ebullet) do
   eb:draw()
@@ -512,11 +594,12 @@ end
   pal()
    o:draw()
   end
-  if level==2 and cam_y<=30 then
-  print("There is no boss here yet...",cam_x+60,cam_y+40,6)
-  print("Better reset.",cam_x+60,cam_y+50,6)
+  
+  if level==2 and cam_y<=30 and spawn==5 then
+--  print("There is no boss here yet...",cam_x+60,cam_y+40,6)
+  print("Good Work!",cam_x+60,cam_y+50,6)
   end
---print(cam_y,cam_x,cam_y,6)
+
   palt(30,true)
   for b in all(bullet) do
   
@@ -549,15 +632,25 @@ end
    e:draw()
   end
   
-  
+ 
 
   for pl in all(players) do
+   
+
+--]]
+
    pl:draw()
+   
   end
  end
 
+
  rectfill(0+cam_x,128+cam_y,240+cam_x,136+cam_y,0)
+
  if ((g_otimer>1.9 and gameover) or (clear>=585)) then
   rectfill(0+cam_x,0+cam_y,240+cam_x,136+cam_y,0)
  end
+-- rect(x1r,x2r,y1r,y2r,7)
+--print(screen,cam_x+70,cam_y+120,7)
+--print(#ebullet,cam_x+90,cam_y+100,7)
 end

@@ -1,6 +1,23 @@
---[[pod_format="raw",created="2026-02-06 05:18:49",modified="2026-07-18 12:10:43",revision=923]]
+--[[pod_format="raw",created="2026-02-06 05:18:49",modified="2026-08-29 23:37:35",revision=1036]]
 --weapons
+local weaponsheet=4
 
+-- Convert a projected bullet position back into the
+-- unprojected coordinates used by 3d movement.
+function get_bullet_world_position(_x,_y,_z)
+
+ local world_x=_x
+ local world_y=0
+ local z=_z or 0
+
+ if level_type=="3d" and perspective_3d then
+  world_x=perspective_3d:world_x_from_screen(_x,z)
+  world_y=perspective_3d:world_y_from_screen(_y,z)
+ end
+
+ return world_x,world_y
+
+end
 
 function ply_weapon(_ply)
 
@@ -42,7 +59,7 @@ local ply=_ply
    ply.max_bullets=1
    if not ply.jam then
     
-  add_new_fire_bullet(ply.b_os_x, ply.b_os_y, ply.b_dx, ply.b_dy, ply) 
+  add_new_fire_bullet(ply.b_os_x, ply.b_os_y, ply.b_dx, ply.b_dy, ply, nil, (ply.b_os_z or 0), ply.b_dz or 0) 
   end
   
   elseif ply.weapon=="laser" then
@@ -68,9 +85,10 @@ local ply=_ply
   sfx(266,15-offset,40,3)
   end
 end
-  -- Only fire if we have at least one slot
+  -- Only fire if we have at least one slot (Homing, Spread and Spread 2 use the same 
+  -- Spread distribution code
   if ply.bullets < ply.max_bullets then
-  add_spread_shot(ply.b_os_x, ply.b_os_y, ply.b_dx, ply.b_dy, ply,60)
+  add_spread_shot(ply.b_os_x, ply.b_os_y, ply.b_dx, ply.b_dy, ply,60, (ply.b_os_z or 0), ply.b_dz or 0)
   end
  
 
@@ -82,7 +100,7 @@ elseif ply.weapon=="spread" then
 
   -- Only fire if we have at least one slot
   if ply.bullets < ply.max_bullets then
-  add_spread_shot(ply.b_os_x, ply.b_os_y, ply.b_dx, ply.b_dy, ply,60)
+  add_spread_shot(ply.b_os_x, ply.b_os_y, ply.b_dx, ply.b_dy, ply,60, (ply.b_os_z or 0), ply.b_dz or 0)
   end
 
   
@@ -96,21 +114,23 @@ ply.max_bullets=10
 
   -- Only fire if we have at least one slot
   if ply.bullets < ply.max_bullets then
-  add_spread_shot(ply.b_os_x, ply.b_os_y, ply.b_dx, ply.b_dy, ply,60)
+  add_spread_shot(ply.b_os_x, ply.b_os_y, ply.b_dx, ply.b_dy, ply,60, (ply.b_os_z or 0), ply.b_dz or 0)
   end
 end
 end
 
-function add_spread_shot(x, y, dx, dy,_ply,_life)
+function add_spread_shot(_x,_y,_dx,_dy,_ply,_life,_z,_dz)
 local ply = _ply
 
 local life=_life
-  -- how wide the cone is (bigger = wider)
+local z=_z or 0
+local dz=_dz or 0
+  -- how wide the cone is
   local k = 0.18
 
-  -- perpendicular (sideways) vector
-  local px = -dy
-  local py =  dx
+  -- sideways skew per pellet
+  local px = -_dy
+  local py =  _dx
 
   -- how many pellets can we actually spawn?
 --  local shot = ply.weapon=="spread 2" and 5 or 3
@@ -173,25 +193,67 @@ end
   end
 
   -- spawn pellets
-  for i=1,#s_list do
-    local s = s_list[i]
-    local m = m_list[i]
-    local l = l_list[i]
-    if ply.weapon~="homing" then
-    add_new_spread_bullet(
-      x, y,
-      dx*m + px*s,
-      dy*m + py*s, ply, l
-    )
-    else
-    add_new_homing_bullet(
-      x, y,
-      dx*m + px*s,
-      dy*m + py*s, ply, l
-    )
+ for i=1,#s_list do
+
+ local s=s_list[i]
+ local m=m_list[i]
+ local l=l_list[i]
+
+ local pellet_s=s
+ local pellet_dz=dz
+
+ if level_type=="3d"
+ and perspective_3d
+ and ply.weapon~="homing" then
+
+  local is_outer=
+   i==1 or i==#s_list
+
+  -- Give only the outside pellets a wider launch angle.
+  if is_outer and s~=0 then
+   pellet_s*=
+    perspective_3d.spread_outer_bias
   end
 
+  -- Apply the existing nose-shape multiplier
+  -- to actual forward depth movement.
+  pellet_dz*=m
+
  end
+
+ if ply.weapon~="homing" then
+
+  add_new_spread_bullet(
+   _x,
+   _y,
+
+   _dx*m+px*pellet_s,
+   _dy*m+py*pellet_s,
+
+   ply,
+   l,
+   z,
+   pellet_dz
+  )
+
+ else
+
+  add_new_homing_bullet(
+   _x,
+   _y,
+
+   _dx*m+px*s,
+   _dy*m+py*s,
+
+   ply,
+   l,
+   z,
+   dz
+  )
+
+ end
+
+end
 end
 
 function kill_bullet(b)
@@ -213,16 +275,16 @@ local offset= b.owner.player==1 and 1 or 0
       else
     sfx(seffect,14-offset,32,2)
 end
- add_new_fire_bullet2nd(b.x,b.y,1,-1,b.owner, b.super)
- add_new_fire_bullet2nd(b.x,b.y,1,1,b.owner, b.super)
- add_new_fire_bullet2nd(b.x,b.y,-1,-1,b.owner, b.super)
- add_new_fire_bullet2nd(b.x,b.y,-1,1,b.owner, b.super)
+ add_new_fire_bullet2nd(b.x,b.y,1,-1,b.owner, b.super,b.z,b.dz)
+ add_new_fire_bullet2nd(b.x,b.y,1,1,b.owner, b.super,b.z,b.dz)
+ add_new_fire_bullet2nd(b.x,b.y,-1,-1,b.owner, b.super,b.z,b.dz)
+ add_new_fire_bullet2nd(b.x,b.y,-1,1,b.owner, b.super,b.z,b.dz)
  if b.super then
- add_new_exp_spawner(b.x+8,b.y+8,0)
- 	add_new_fire_bullet2nd(b.x,b.y,0,-1.5,b.owner, b.super)
- add_new_fire_bullet2nd(b.x,b.y,1.5,0,b.owner, b.super)
- add_new_fire_bullet2nd(b.x,b.y,0,1.5,b.owner, b.super)
- add_new_fire_bullet2nd(b.x,b.y,-1.5,0,b.owner, b.super)
+ add_new_exp_spawner(b.x+4,b.y+8,0)
+ 	add_new_fire_bullet2nd(b.x,b.y,0,-1.5,b.owner, b.super,b.z,b.dz)
+ add_new_fire_bullet2nd(b.x,b.y,1.5,0,b.owner, b.super,b.z,b.dz)
+ add_new_fire_bullet2nd(b.x,b.y,0,1.5,b.owner, b.super,b.z,b.dz)
+ add_new_fire_bullet2nd(b.x,b.y,-1.5,0,b.owner, b.super,b.z,b.dz)
  end
   end
 end
@@ -230,25 +292,43 @@ end
 function add_new_bullet(_ply)
 _ply.bullets += 1
 local ply=_ply
+local world_x,world_y=get_bullet_world_position(
+ ply.b_os_x,
+ ply.b_os_y,
+ ply.b_os_z or 0
+)
 add(bullet,{
-
+ world_x=world_x,
+ world_y=world_y,
  x=ply.b_os_x,
  y=ply.b_os_y,
- dx=ply.b_dx,
- dy=ply.b_dy,
+ z=ply.b_os_z or 0,
+ dx=ply.b_dx or 0,
+ dy=ply.b_dy or 0,
+ dz=ply.b_dz or 0,
+ dworld_y=ply.b_dworld_y or 0,
  life=60,
  owner=_ply,
- update=function(self)
+ 
+  update=function(self)
+if  level_type=="3d" and perspective_3d then
+ self.world_x+=self.dx
+ self.world_y+=self.dworld_y
+ self.z+=self.dz
+ perspective_3d:project(self)
+else
  self.x+=self.dx
  self.y+=self.dy
- self.life-=1
- 
+end
+
+self.life-=(level_type=="3d") and 1.5 or 1
 
  end,
  draw=function(self)
 -- palt(30,true)
-  spr(13,self.x,self.y)
- --print(self.owner,self.x,self.y,7)
+  sspr(weaponsheet,16,16,8,8,self.x,self.y,8,8)
+-- print(self.z,self.x,self.y,7)
+-- print(self.owner,self.x,self.y,7)
 --  palt()
  end
   
@@ -260,24 +340,40 @@ end
 function add_new_mgun_bullet(_ply)
 _ply.bullets += 1
 local ply=_ply
+local world_x,world_y=get_bullet_world_position(
+ ply.b_os_x,
+ ply.b_os_y,
+ ply.b_os_z or 0
+)
 add(bullet,{
-
+world_x=world_x,
+world_y=world_y,
 x=ply.b_os_x,
 y=ply.b_os_y,
-dx=ply.b_dx,
-dy=ply.b_dy,
+dx=ply.b_dx or 0,
+dy=ply.b_dy or 0,
+dz=ply.b_dz or 0,
+dworld_y=ply.b_dworld_y or 0,
+z=(ply.b_os_z or 0),
  life=60,
  owner=_ply,
  update=function(self)
+if  level_type=="3d" and perspective_3d then
+ self.world_x+=self.dx
+ self.world_y+=self.dworld_y
+ self.z+=self.dz
+ perspective_3d:project(self)
+else
  self.x+=self.dx
  self.y+=self.dy
- self.life-=1
+end
 
+self.life-=(level_type=="3d") and 1.5 or 1
 
  end,
  draw=function(self)
 
-  spr(14,self.x,self.y)
+  sspr(weaponsheet,24,16,8,8,self.x,self.y,8,8)
  
  end
   
@@ -285,32 +381,50 @@ dy=ply.b_dy,
 
 end
 
-function add_new_spread_bullet(x, y, dx, dy,_ply,_life)
+function add_new_spread_bullet(_x,_y,_dx,_dy,_ply,_life,_z,_dz)
   _ply.bullets += 1
 
+  local world_x,world_y=get_bullet_world_position(
+   _x,
+   _y,
+   _z or 0
+  )
+
   add(bullet,{
-    x=x, y=y,
-    dx=dx, dy=dy,
-    life=_life,
+    world_x=world_x,
+    world_y=world_y,
+    x=_x, y=_y,
+    z=_z or 0,
+    dx=_dx or 0, dy=_dy or 0,dz=_dz or 0,
+    dworld_y=_ply.b_dworld_y or 0,
+    life=_life or 60,
    owner=_ply,
-    sp=13,
+    sp=16,
 
     update=function(self)
-      self.x += self.dx
-      self.y += self.dy
-      self.life -= 1
-     if self.life==48 then self.sp+=1
+     if  level_type=="3d" and perspective_3d then
+ self.world_x+=self.dx
+ self.world_y+=self.dworld_y
+ self.z+=self.dz
+ perspective_3d:project(self)
+else
+ self.x+=self.dx
+ self.y+=self.dy
+end
+
+self.life-=(level_type=="3d") and 1.5 or 1
+     if (self.life==30 or self.life==48) then self.sp+=8
       end
       
-      if self.life==30 then self.sp+=1
-      end
+--      if self.life==30 then self.sp+=8
+--      end
 
 
     end,
 
     draw=function(self)
-      spr(self.sp,self.x,self.y)
-      
+      sspr(weaponsheet,self.sp,16,8,8,self.x,self.y,8,8)
+--      print(self.dx,self.x,self.y-8,7)
     end
   })
 end
@@ -355,50 +469,68 @@ function find_homing_target(x,y)
   return best
 end
 
-function add_new_homing_bullet(x,y,dx,dy,_ply,_life)
+function add_new_homing_bullet(_x,_y,_dx,_dy,_ply,_life,_z,_dz)
 
   _ply.bullets+=1
 
-  --------------------------------------------------
-  -- INITIAL MOVEMENT
-  --------------------------------------------------
+  local x=_x
+  local y=_y
+  local z=_z or 0
+  local dx=_dx or 0
+  local dy=_dy or 0
+  local dz=_dz or 0
+  local world_x,world_y=get_bullet_world_position(x,y,z)
 
-  local speed=sqrt(dx*dx+dy*dy)
+ 
 
-  if speed<=0 then
-    speed=1
+  local planar_speed=sqrt(dx*dx+dy*dy)
+  local speed=planar_speed
+
+  if planar_speed<=0 and dz==0 then
     dx=1
-    dy=0
+    planar_speed=1
+    speed=1
+  elseif speed<=0 then
+    speed=max(abs(dz),1)
   end
 
-  local dir_x=dx/speed
-  local dir_y=dy/speed
+  local dir_x=0
+  local dir_y=0
 
-  --------------------------------------------------
-  -- INITIAL TARGET
-  --------------------------------------------------
+  if planar_speed>0 then
+    dir_x=dx/planar_speed
+    dir_y=dy/planar_speed
+  end
+
+  
 
   local target=find_homing_target(x,y)
 
   local target_x=nil
   local target_y=nil
+  local target_z=nil
 
   if target then
     target_x=target.x+(target.w or 8)/2
     target_y=target.y+(target.h or 8)/2
+--    target_z=(target.z or 0)+(target.d or 0)/2
   end
 
-  --------------------------------------------------
-  -- CREATE MISSILE
-  --------------------------------------------------
+ 
+
+ 
 
   add(bullet,{
 
     x=x,
     y=y,
-
+    z=z,
+    world_x=world_x,
+    world_y=world_y,
     dx=dx,
     dy=dy,
+    dz=dz,
+    dworld_y=_ply.b_dworld_y or 0,
     flpx=false,
     flpy=false,
     speed=speed,
@@ -410,13 +542,14 @@ function add_new_homing_bullet(x,y,dx,dy,_ply,_life)
 
     target_x=target_x,
     target_y=target_y,
+    target_z=target_z,
 
-    -- Preserve the initial spread direction briefly.
+    -- Initial launch is dumb
     steer_delay=(_ply.rapid) and 10+flr(rnd(5)) or 20+flr(rnd(10))+flr(rnd(5)),
 
-    -- Each missile has slightly different behavior.
+    
     base_turn=.05+rnd(.135),
-    panic_turn=0,
+    panic_turn=.25,
 
     orbit_timer=0,
 
@@ -438,12 +571,11 @@ last_dist=nil,
     sp=16,
 
     update=function(self)
-self.timer+=1
-      ------------------------------------------------
-      -- KEEP LIVE TARGET POSITION UPDATED
-      ------------------------------------------------
+    local increment3d= level_type=="3d" and 2 or 1
+self.timer+=increment3d
+      
 if self.target==nil then
-	self.life-=1
+	self.life-=(level_type=="3d") and 1.5 or 1
 end
       if self.target then
       self.speed+= (self.speed<=2) and .01 or 0
@@ -456,6 +588,10 @@ end
           self.target_y=
             self.target.y+
             (self.target.h or 8)/2
+
+          self.target_z=
+--            (self.target.z or 0)+
+            (self.target.d or 0)/2
 
        else
 
@@ -470,15 +606,19 @@ end
 end
       end
 
-      ------------------------------------------------
-      -- DELAY STEERING AFTER LAUNCH
-      ------------------------------------------------
+      
+      -- Dumb launch
+      
 
-      if self.steer_delay>0 then
+     if self.steer_delay>0 then
 
-        self.steer_delay-=1
+ local steer_step=
+  level_type=="3d" and 2 or 1
 
-      elseif self.target_x then
+ self.steer_delay=
+  max(0,self.steer_delay-steer_step)
+
+elseif self.target_x then
 
         local aim_x=self.target_x-self.x
         local aim_y=self.target_y-self.y
@@ -490,16 +630,16 @@ end
 
         if aim_dist>0 then
 
-          ------------------------------------------------
+          
           -- NORMALIZE TARGET DIRECTION
-          ------------------------------------------------
+          
 
           aim_x/=aim_dist
           aim_y/=aim_dist
 
-          ------------------------------------------------
-          -- ORBIT DETECTION
-          ------------------------------------------------
+          
+          -- Missile direction relative to target
+          
 
           -- 1 means facing directly toward the target.
           -- 0 means traveling sideways around it.
@@ -508,16 +648,12 @@ end
   self.dir_x*aim_x+
   self.dir_y*aim_y
 
-------------------------------------------------
--- ORBIT DETECTION BY ANGULAR SWEEP
-------------------------------------------------
 
--- Picotron/PICO-8 atan2 uses x,y ordering.
 local aim_angle=atan2(aim_x,aim_y)
 
 if self.last_aim_angle then
 
-  -- Shortest signed change across the 0/1 boundary.
+  
   local angle_change=
     (aim_angle-self.last_aim_angle+.5)%1-.5
 
@@ -552,12 +688,9 @@ end
 self.last_aim_angle=aim_angle
 self.last_dist=aim_dist
 
-------------------------------------------------
--- BLEED OFF ORBIT SUSPICION WHEN CLOSING CLEANLY
-------------------------------------------------
 
--- Strongly pointed toward the target means the missile
--- is probably intercepting rather than circling.
+
+
 if alignment>.65 then
 
   self.orbit_sweep=
@@ -565,29 +698,28 @@ if alignment>.65 then
 
 end
 
-------------------------------------------------
--- DETERMINE WHETHER IT IS ORBITING
-------------------------------------------------
-
--- .125 is one eighth of a full revolution:
--- roughly 45 degrees of sustained sweep.
+-- Am I orbiting?
 local orbiting=
   self.orbit_sweep>.125
   and alignment<.4
 
-          ------------------------------------------------
-          -- CHOOSE NORMAL OR PANIC STEERING
-          ------------------------------------------------
+          -- Then fix it...
 
           local turn=self.base_turn
 
+   if level_type=="3d" then
+   turn*=1.5   
+   end
+
+
           if orbiting then
+-- different turn to get out of the orbit
 
   turn=self.panic_turn
 
   self.orbit_timer+=1
 
-  -- Panic correction eventually earns a fresh evaluation.
+  -- check again...
   if self.orbit_timer>8 then
     self.orbit_sweep*=.5
     self.orbit_timer=0
@@ -600,9 +732,9 @@ else
 
 end
 
-          ------------------------------------------------
-          -- STEER TOWARD TARGET
-          ------------------------------------------------
+          
+          -- Steer toward target
+          
 
           self.dir_x=
             self.dir_x*(1-turn)+
@@ -612,15 +744,13 @@ end
             self.dir_y*(1-turn)+
             aim_y*turn
 
-          ------------------------------------------------
-          -- CHAOTIC ORBIT ESCAPE
-          ------------------------------------------------
+         
 
           if orbiting then
 
             self.chaos_timer+=1
 
-            -- Perpendicular vector.
+            -- draw a line from missile to target
             local side_x=-aim_y
             local side_y= aim_x
 
@@ -654,9 +784,7 @@ end
 
           end
 
-          ------------------------------------------------
-          -- RENORMALIZE DIRECTION
-          ------------------------------------------------
+         
 
           local dir_length=sqrt(
             self.dir_x*self.dir_x+
@@ -670,22 +798,29 @@ end
 
           end
 
-          ------------------------------------------------
-          -- REBUILD VELOCITY
-          ------------------------------------------------
+         
 
-          self.dx=self.dir_x*self.speed
-          self.dy=self.dir_y*self.speed
+        self.dx=self.dir_x*self.speed
+self.dy=self.dir_y*self.speed
 
-          ------------------------------------------------
-          -- LAST-KNOWN-POSITION ARRIVAL
-          ------------------------------------------------
+if level_type=="3d" then
+
+ -- Negative screen dy means moving deeper
+ -- into the Base room.
+ self.dz=-self.dy
+
+end
+
+          
+          -- No target? Break off and expire
+         
 
          if not self.target
 and aim_dist<5 then
 
   self.target_x=nil
   self.target_y=nil
+  self.target_z=nil
 
   self.last_dist=nil
   self.last_aim_angle=nil
@@ -697,20 +832,23 @@ and aim_dist<5 then
 end
 end 
 end
-      ------------------------------------------------
-      -- MOVE
-      ------------------------------------------------
+     
 
-      self.x+=self.dx
-      self.y+=self.dy
-      --self.life-=1
+    if  level_type=="3d" and perspective_3d then
+ self.world_x+=self.dx
+ self.world_y+=self.dworld_y
+ self.z+=self.dz
+ perspective_3d:project(self)
+else
+ self.x+=self.dx
+ self.y+=self.dy
+end
+
+--self.life-=1
 
 	if self.dy~=0 then self.sp=18
 
 end
-------------------------------------------------
--- CHOOSE MISSILE ORIENTATION
-------------------------------------------------
 
 local ax=abs(self.dx)
 local ay=abs(self.dy)
@@ -719,20 +857,19 @@ local cardinal=.25
 local shallow=.65
 
 if ay<=ax*cardinal then
-  self.sp=32 -- horizontal
+  self.sp=16
 
 elseif ax<=ay*cardinal then
-  self.sp=36 -- vertical
+  self.sp=48
 
 elseif ay<ax*shallow then
-  self.sp=33 -- shallow from horizontal
+  self.sp=24 
 
 elseif ax<ay*shallow then
-  self.sp=35 -- shallow from vertical
-  -- This may require rotation support or a separate sprite.
+  self.sp=40 
 
 else
-  self.sp=34 -- near 45-degree diagonal
+  self.sp=32
 end
 
 self.flpx=self.dx<0
@@ -741,9 +878,7 @@ self.flpy=self.dy>0
 
     draw=function(self)
 
-      ------------------------------------------------
-      -- TEMPORARY MISSILE DRAW
-      ------------------------------------------------
+ local ply=_ply   
 if self.owner.player==0 then
 	pal(24,12)
 	pal(8,28)
@@ -756,22 +891,32 @@ if self.steer_delay>6 or self.target==nil  then
 	palt(9,true)
 	palt(10,true)	
 end
-      spr(
+      sspr(
+        weaponsheet,
         self.sp,
+        48,
+        8,
+        8,
         self.x,
         self.y,
-        self.flpx,
-        self.flpy        
+        8,
+        8,
+        self.flpx,      
+        self.flpy      
       )
       pal()
  palt()     
  palt(30,true)     
 --print(self.flpy,self.x,self.y,7)
-      ------------------------------------------------
-      -- HOMING TARGET INDICATOR
-      ------------------------------------------------
+    
+      -- Targeting reticle
+    
 local col= (self.owner.player==1) and 8 or 28
-       if self.target_x then
+local circsize= (self.steer_delay*2)+1.5
+       if self.target_x
+        and 
+       self.steer_delay<= 6
+       then
          circ(
            self.target_x+
            sin(self.timer*.07)*rnd(5),
@@ -779,7 +924,7 @@ local col= (self.owner.player==1) and 8 or 28
            self.target_y+
            cos(self.timer*.09)*rnd(5),
       
-          1.5,
+          circsize,
            col
          )
        end
@@ -788,14 +933,25 @@ local col= (self.owner.player==1) and 8 or 28
   })
 end
 
-function add_new_fire_bullet(_x,_y,_dx,_dy,_ply,_super)
+function add_new_fire_bullet(_x,_y,_dx,_dy,_ply,_super,_z,_dz)
     _ply.bullets += 1
 
+    local world_x,world_y=get_bullet_world_position(
+     _x,
+     _y,
+     _z or 0
+    )
+
     add(bullet,{
+        world_x=world_x,
+        world_y=world_y,
         x = _x,
         y = _y,
-        dx = _dx,
-        dy = _dy,
+        z= _z or 0,
+        dx = _dx or 0,
+        dy = _dy or 0,
+        dz=_dz or 0,
+        dworld_y=_ply.b_dworld_y or 0,
         is_fire = true,
         super = _super or false,
         released = false,
@@ -830,15 +986,28 @@ local offset= p.player==1 and 1 or 0
                 -- follow the player's current firing origin
                 self.x = p.b_os_x
                 self.y = p.b_os_y
+                self.z = (p.b_os_z or 0)+4
+
+                -- The charged shot follows the player until released,
+                -- so its unprojected position must follow as well.
+                self.world_x,self.world_y=
+                 get_bullet_world_position(
+                  self.x,
+                  self.y,
+                  self.z
+                 )
 
                 -- keep updating launch direction too
-                self.dx = p.b_dx
-                self.dy = p.b_dy
+                self.dx = p.b_dx or 0
+                self.dy = p.b_dy or 0
+                self.dz = p.b_dz or 0
+                self.dworld_y=p.b_dworld_y or 0
             self.blink+=1
             if self.super then
     self.ready+=1        
     self.dx *= 1.5
     self.dy *= 1.5
+    self.dz *= 1.5
 end
 
                 if not btn(4, p.player) then
@@ -860,9 +1029,18 @@ p.recoil=0
                     self.blink=1
                 end
             else
-                self.x += self.dx
-                self.y += self.dy
-                self.life -= 4
+                if level_type=="3d" and perspective_3d then
+ self.world_x+=self.dx
+ self.world_y+=self.dworld_y
+ self.z+=self.dz
+ perspective_3d:project(self)
+else
+ self.x+=self.dx
+ self.y+=self.dy
+end
+
+self.life-=4
+--                self.life -= 4
             end
             
             if self.super then self.blink=1 end
@@ -875,15 +1053,39 @@ p.recoil=0
         if self.blink%3==1 then
         if self.life>=60 then
         if not self.released and self.ready~=0 then
-            spr(sprite,self.x,self.y-1,flipx)
+            sspr(weaponsheet,16,40,8,8,self.x,self.y-1,8,8,flipx)
             else
-            spr(22,self.x,self.y)
+                sspr(
+        weaponsheet,
+        16,
+        32,
+        8,
+        8,
+        self.x,
+        self.y,
+        8,
+        8,
+        self.flpx,      
+        self.flpy      
+      ) 
             end
             else
             if self.super then
-            spr(12,self.x-4,self.y-2,flipx,flipy)
+            sspr(weaponsheet, 24,32,16,16,self.x-4,self.y-2,16,16,flipx,flipy)
             else
-            spr(22,self.x,self.y)
+             sspr(
+        weaponsheet,
+        16,
+        32,
+        8,
+        8,
+        self.x,
+        self.y,
+        8,
+        8,
+        self.flpx,      
+        self.flpy      
+      ) 
             end
             end
             end
@@ -892,25 +1094,47 @@ p.recoil=0
     })
 end
 
-function add_new_fire_bullet2nd(_x,_y,_dx,_dy,_ply, _super)
+function add_new_fire_bullet2nd(_x,_y,_dx,_dy,_ply, _super,_z,_dz)
+
+local world_x,world_y=get_bullet_world_position(
+ _x,
+ _y,
+ _z or 0
+)
 
 add(bullet,{
-
+ world_x=world_x,
+ world_y=world_y,
  x=_x,
  y=_y,
+ z=_z or 0,
+ w=_super and 16 or 8,
+ h=_super and 16 or 8,
  is_2nd_fire=true,
  owner=_ply,
- dx=_dx,
- dy=_dy,
+ dx=_dx or 0,
+ dy=_dy or 0,
+ dz=_dz or 0,
+ -- Positive screen dy points down, while positive world_y points up.
+ dworld_y=-(_dy or 0),
  life=40,
  blink=0,
- sp=_super and 12 or 22,
+ sp=_super and 24 or 16,
 
 
  update=function(self)
  
+ if  level_type=="3d" and perspective_3d then
+ self.world_x+=self.dx
+ self.world_y+=self.dworld_y
+ self.z+=self.dz
+ perspective_3d:project(self)
+else
  self.x+=self.dx
  self.y+=self.dy
+end
+
+--self.life-=1
  self.life-=2 
  self.blink+=.5
  
@@ -930,7 +1154,8 @@ end
  end,
   draw=function(self)
 if self.blink<.5 then
-  spr(self.sp,self.x,self.y)
+sspr(weaponsheet, self.sp,32,self.w,self.h,self.x-4,self.y,self.w,self.h)
+--  spr(self.sp,self.x,self.y)
   end
 
  end
@@ -939,87 +1164,207 @@ if self.blink<.5 then
 
 end
 
-function add_new_laser(ply)
-  clear_player_laser(ply)
+function add_new_laser(_ply)
+
+ local ply=_ply
+
+ clear_player_laser(ply)
+
  local shot_x=ply.b_os_x
-  local shot_y=ply.b_os_y
-  
-  for i=0,4 do
-    add_new_laser_part(shot_x, shot_y, i, ply)
-  end
+ local shot_y=ply.b_os_y
+ local shot_z=ply.b_os_z or 0
+ local shot_dz=ply.b_dz or 0
+
+ for i=0,4 do
+  add_new_laser_part(
+   shot_x,
+   shot_y,
+   i,
+   ply,
+   shot_z,
+   shot_dz
+  )
+ end
+
 end
 
-function add_new_laser_part(shot_x, shot_y, i, ply)
-  ply.bullets += 1
 
-  add(bullet,{
-    is_laser=true,
-    owner=ply,
-    laser_part=i,
+function add_new_laser_part(
+ _x,
+ _y,
+ _i,
+ _ply,
+ _z,
+ _dz
+)
 
-    x=shot_x,
-    y=shot_y,
-    start_x=shot_x,
-    start_y=shot_y,
-    dx=ply.b_dx,
-    dy=ply.b_dy,
-    flpx=false,
-    flpy=false,
-     delay=(ply.rapid) and i*1.5 or i*2.5,
---    delay=i*1.5,
-    life=80 + (i*3),
-    sp=19,
+ local shot_x=_x
+ local shot_y=_y
+ local i=_i
+ local ply=_ply
+ local shot_z=_z or 0
+ local dz=_dz or 0
 
-    update=function(self)
-    
-    
-      if self.delay > 0 then
-        self.delay -= 1
-        self.x = self.start_x
-        self.y = self.start_y
-      else
-        self.x += self.dx * 1.5
-        self.y += self.dy * 1.3
-        self.life -= 1
-      end
-      self.life -= 1
-      
-      
-    end,
+ -- Default world coordinates.
+ local shot_world_x=shot_x
+ local shot_world_y=0
 
-    draw=function(self)
-    --palt(30,true)
-   
-    self.flpx = (self.dx<=0) and true or false 
-    self.flpy = (self.dy>0) and true or false
-    self.sp=(self.dy==0) and 19 or 20 
-    if (self.dx~=0 and self.dy~=0) then
-      	self.sp=21
-      end
-       if global_timer%4<=2 then
-       if ply.player==0 then
-    	pal(8,28)
-    	pal(9,7)
-    	pal(10,12)
-    	else
-    	pal(8,26)
-    	pal(9,7)
-    	pal(10,11)
-    	end
+ -- Convert the initial projected position back
+ -- into unprojected world coordinates.
+ if level_type=="3d" and perspective_3d then
+
+  shot_world_x=
+   perspective_3d:world_x_from_screen(
+    shot_x,
+    shot_z
+   )
+
+  shot_world_y=
+   perspective_3d:world_y_from_screen(
+    shot_y,
+    shot_z
+   )
+
+ end
+
+ ply.bullets+=1
+
+ add(bullet,{
+
+  is_laser=true,
+  owner=ply,
+  laser_part=i,
+
+  -- Actual projected collision position.
+  x=shot_x,
+  y=shot_y,
+  z=shot_z,
+
+  -- Unprojected 3D position.
+  world_x=shot_world_x,
+  world_y=shot_world_y,
+
+  -- Starting projected position.
+  start_x=shot_x,
+  start_y=shot_y,
+  start_z=shot_z,
+
+  -- Starting unprojected position.
+  start_world_x=shot_world_x,
+  start_world_y=shot_world_y,
+
+  -- World movement.
+  dx=ply.b_dx or 0,
+  dy=ply.b_dy or 0,
+  dz=dz,
+  dworld_y=ply.b_dworld_y or 0,
+
+  flpx=false,
+  flpy=false,
+
+  delay=(ply.rapid) and i*1.5 or i*2.5,
+  life=80+(i*3),
+  sp=19,
+
+  update=function(self)
+
+   self.flpx=self.dx<=0
+   self.flpy=self.dy>0
+
+   self.sp=(self.dy==0) and 16 or 24
+
+   if self.dx~=0 and self.dy~=0 then
+    self.sp=32
+   end
+
+   if self.delay>0 then
+
+    self.delay-=1
+
+    -- Hold this segment at its starting point.
+    self.x=self.start_x
+    self.y=self.start_y
+    self.z=self.start_z
+
+    self.world_x=self.start_world_x
+    self.world_y=self.start_world_y
+
+   else
+
+    if  level_type=="3d" and perspective_3d then
+
+     -- Move through unprojected 3D space.
+     self.world_x+=self.dx*1.5
+     self.world_y+=self.dworld_y*1.3
+     self.z+=self.dz*1.5
+
+     -- The bullet loop calls:
+     -- perspective_3d:project(self)
+
+    else
+
+     self.x+=self.dx*1.5
+     self.y+=self.dy*1.3
+
     end
-      spr(self.sp,self.x,self.y,self.flpx,self.flpy)
-    pal()
-      palt(30,true)
---      print(self.dy,self.x,self.y,7)
+
+   self.life-=(level_type=="3d") and 3 or 2
+
+   end
+
+  end,
+
+  draw=function(self)
+
+   if global_timer%4<=2 then
+
+    if ply.player==0 then
+     pal(8,28)
+     pal(9,7)
+     pal(10,12)
+    else
+     pal(8,26)
+     pal(9,7)
+     pal(10,11)
     end
-  })
+
+   end
+
+   sspr(
+    weaponsheet,
+    self.sp,
+    24,
+    8,
+    8,
+    self.x,
+    self.y,
+    8,
+    8,
+    self.flpx,
+    self.flpy
+   )
+
+   pal()
+   palt(30,true)
+
+  end
+
+ })
+
 end
 
-function clear_player_laser(ply)
-  for b in all(bullet) do
-    if b.owner == ply and b.is_laser then
-      kill_bullet(b)
-      del(bullet,b)
-    end
+
+function clear_player_laser(_ply)
+
+ local ply=_ply
+
+ for b in all(bullet) do
+
+  if b.owner==ply and b.is_laser then
+   kill_bullet(b)
+   del(bullet,b)
   end
+
+ end
+
 end

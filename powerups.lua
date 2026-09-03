@@ -1,23 +1,26 @@
---[[pod_format="raw",created="2026-02-06 05:18:16",modified="2026-07-24 09:32:41",revision=120]]
+--[[pod_format="raw",created="2026-02-06 05:18:16",modified="2026-08-17 03:23:03",revision=175]]
 
 --capsules and powerups
-function add_new_cap_spawner(_x,_y,_item)
+function add_new_cap_spawner_hor(_x,_y,_item,_dir)
 
 add(effect,{
-
+    
       x=_x*8,
       y=_y*8,
+      z=_z or 0,
       w=16,
       h=128,
-    
+      dir=_dir,   
    item=_item,
 
  update=function(self)
- 
+
 
  for pl in all(players) do
  if self.x<pl.x then 
- add_new_cap(cam_x-10,self.y,1,self.item)
+ local direction=(self.dir=="left") and -1 or 1
+ local spawn_side=(self.dir=="left") and cam_x+240 or cam_x-16
+ add_new_cap_hor(spawn_side,self.y,direction,self.item,_dir)
  
  
  del(effect,self)
@@ -31,7 +34,56 @@ add(effect,{
  end
  end,
  draw=function(self)
+
 --line(self.x,self.y-128,self.x,self.h,9)
+
+
+--  spr(25,self.x,self.y)
+--  spr(25,self.x+8,self.y,true)
+
+ end
+  
+})
+
+end
+
+function add_new_cap_spawner_vert(_x,_y,_item,_dir)
+
+add(effect,{
+    
+      x=_x,
+      y=_y,
+      z=_z or 0,
+      w=16,
+      h=128,
+      dir=_dir,   
+   item=_item,
+
+ update=function(self)
+
+
+ for pl in all(players) do
+ if self.y>flr(pl.y) and not pl.gameover then 
+-- local direction=(self.dir=="left") and -1 or 1
+-- local spawn_side=(self.dir=="left") and cam_x+240 or cam_x
+ add_new_cap_vert(self.x,cam_y+128,-1,self.item,_dir)
+ 
+ 
+ del(effect,self)
+
+
+ 
+
+ 
+ 
+ end
+ end
+ end,
+ draw=function(self)
+
+--line(cam_x,self.y,cam_x+240,self.y,9)
+
+
 --  spr(25,self.x,self.y)
 --  spr(25,self.x+8,self.y,true)
 
@@ -42,15 +94,19 @@ add(effect,{
 end
 
 
-function add_new_cap(_x,_y,_dx,_item)
+function add_new_cap_hor(_x,_y,_dx,_item,_z,_dz)
 
 add(enemy,{
 
       x=_x,
       y=_y,
+      z=_z or 0,
       w=16,
       h=8,
+      d=8,
      dx=_dx,
+     
+     dz=_dz or 0,
      is_cap=true,
      targetable=true,
      owner=_owner or 0,
@@ -66,7 +122,7 @@ self.timer+=.02
  
  
  --capsule bob
- 
+
  if self.dy<-1 then self.dy=-1
  
  elseif self.dy>1 then self.dy=1
@@ -80,8 +136,11 @@ self.timer+=.02
  
  if self.timer<.5 then self.dy+=.08
  elseif self.timer>.5 then self.dy-=.08
- end
+
+
  
+
+ end
  if self.life<=0 then 
  add_new_pup(self.x,self.y,self.item,self.owner)
  add_new_exp(self.x+8,self.y+4,2)
@@ -92,9 +151,9 @@ self.timer+=.02
  --]]
  end
   ---[[
- if self.x>=cam_x+240
+ if self.x>=cam_x+260
  or self.x<=cam_x-20 
- 
+ or self.y+self.h<cam_y
   then
 
  del(enemy,self)
@@ -104,26 +163,109 @@ self.timer+=.02
  end
  end,
  draw=function(self)
---palt(30,true)
-  spr(25,self.x,self.y)
---  spr(25,self.x+8,self.y,true)
+palt(30,true)
+ sspr(3,16,32,self.w,self.h,self.x,self.y,self.w,self.h)
+
 --palt()
+
  end
   
 })
 
 end
 
-function add_new_pup(_x,_y,_item,_owner)
+function add_new_cap_vert(_x,_y,_dy,_item,_z,_dz)
+
+add(enemy,{
+
+      x=_x,
+      y=_y,
+      z=_z or 0,
+      w=16,
+      h=8,
+      d=8,
+     dx=-2,
+     
+     dz=_dz or 0,
+     is_cap=true,
+     targetable=true,
+     owner=_owner or 0,
+     dy=_dy,
+   life=1,
+   item=_item,
+  timer=0,
+ update=function(self)
+ 
+self.x+=self.dx
+self.y+=self.dy
+self.timer+=.02
+ 
+ 
+ --capsule bob
+
+ if self.dx<-2 then self.dx=-2
+ 
+ elseif self.dx>2 then self.dx=2
+ 
+ end
+ 
+ if self.timer>1 then 
+
+ self.timer=0
+ end
+ 
+ if self.timer<.5 then self.dx+=.16
+ elseif self.timer>.5 then self.dx-=.16
+
+
+ 
+
+ end
+ if self.life<=0  then 
+ add_new_pup(self.x,self.y,self.item,self.owner)
+ add_new_exp(self.x+8,self.y+4,2)
+ 
+ del(enemy,self)
+
+
+ --]]
+ end
+  ---[[
+ if self.x>=cam_x+260
+ or self.x<=cam_x-20 
+ or self.y+self.h<cam_y
+  then
+
+ del(enemy,self)
+ 
+
+ 
+ end
+ end,
+ draw=function(self)
+palt(30,true)
+  sspr(3,16,32,self.w,self.h,self.x,self.y,self.w,self.h)
+
+palt(30,true)
+ end
+  
+})
+
+end
+
+function add_new_pup(_x,_y,_item,_owner,_z,_dz)
 
 add(pup,{ 
     x=_x,
     is_pup=true,
     y=_y,
     initial_y=_y+20,
+    z=_z or 0,
     w=8,
     owner=_owner,
     h=8,
+    d=8,
+    dz=_dz or 0,
    dx=_x<cam_x+110 and .4 or -.4,
    dy=-1.50,
    sp=_item,
@@ -141,7 +283,19 @@ add(pup,{
  self.dx=0	
  self.dy=0	
  end
-
+ if self.dy>0 then
+ if collide_map(self,"left",0) and self.dx<0 then
+ 	self.dx=-self.dx
+ end
+ 
+  if collide_map(self,"right",0) and self.dx>0 then
+ 	self.dx=-self.dx
+ end
+ end
+ if  collide_map(self,"up",0) and self.dy<=0 then
+ 	self.dy=0
+ 	self.y+=2
+ end
 -- resolve_slope(self)
  if level_type~= "top down" then
  if collide_map(self,"down",3) and self.dy>0 then

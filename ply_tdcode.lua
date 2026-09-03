@@ -1,4 +1,4 @@
---[[pod_format="raw",created="2026-03-02 22:46:23",modified="2026-07-09 06:04:22",revision=724]]
+--[[pod_format="raw",created="2026-03-02 22:46:23",modified="2026-08-17 02:56:14",revision=742]]
 
 --player top-down functions
 
@@ -21,10 +21,6 @@ ply.dy=0
 --poke(0x005580,0)
 end
 
-if clear>200  then 
---
-ply_run_up(ply)
-end
 
 
 
@@ -92,6 +88,24 @@ end
   end
 
    end
+   if fanfare then 
+   local targetx= (ply.player==0) and cam_x+116 or cam_x+130
+ply_run_up(ply)
+ ply.aim_dir="up"
+if flr(ply.x+4)~= flr(targetx) then
+	
+if flr(ply.x+4)> flr(targetx) then
+ply_run_left(ply)	
+ply.aim_dir="uplt"
+end
+if flr(ply.x+4)< flr(targetx) then
+ply_run_right(ply)
+ ply.aim_dir="uprt"		
+end
+end
+
+end
+
 
      fric=.23
      player_collide_top(ply)
@@ -103,7 +117,7 @@ function ply_aim_top(_ply)
 
 local ply= _ply
 
-if clear<15 then
+if clear<15  then
  if btn(2,ply.player) and ply.running  and not fanfare then 
  ply.aim=1
  
@@ -120,6 +134,7 @@ function aiming_top(ply)
     ply.b_dbase = ply.rapid and 2.5 or 1.5
 
     -- update intent only if pressing a direction
+    if not complete then
     if btn(2,ply.player) then ply.aim_dir="up" end
     if btn(3,ply.player) then ply.aim_dir="dn" end
     if btn(1,ply.player) then ply.aim_dir="rt" end
@@ -129,7 +144,7 @@ function aiming_top(ply)
     if btn(2,ply.player) and btn(1,ply.player) then ply.aim_dir="uprt" end
     if btn(3,ply.player) and btn(0,ply.player) then ply.aim_dir="dnlt" end
     if btn(3,ply.player) and btn(1,ply.player) then ply.aim_dir="dnrt" end
-
+end
     -- fallback
     if not ply.aim_dir then ply.aim_dir="up" end
 
@@ -139,7 +154,7 @@ function aiming_top(ply)
         ply.b_dx=0
         ply.b_dy=-ply.b_dbase
         ply.b_os_x=ply.x+2
-        ply.b_os_y=ply.y-10
+        ply.b_os_y=ply.y-11
 
     elseif ply.aim_dir=="dn" then
         ply.aim=4 ply.flp0=false
@@ -153,14 +168,14 @@ function aiming_top(ply)
         ply.b_dx=ply.b_dbase
         ply.b_dy=0
         ply.b_os_x=ply.x+5
-        ply.b_os_y=ply.y-4
+        ply.b_os_y=ply.y-6
 
     elseif ply.aim_dir=="lt" then
         ply.aim=2 ply.flp0=true
         ply.b_dx=-ply.b_dbase
         ply.b_dy=0
         ply.b_os_x=ply.x-5
-        ply.b_os_y=ply.y-4
+        ply.b_os_y=ply.y-6
 
     elseif ply.aim_dir=="uprt" then
         ply.aim=1 ply.flp0=false

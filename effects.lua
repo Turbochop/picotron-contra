@@ -1,4 +1,4 @@
---[[pod_format="raw",created="2026-02-06 05:15:57",modified="2026-07-18 10:53:01",revision=502]]
+--[[pod_format="raw",created="2026-02-06 05:15:57",modified="2026-08-29 23:17:56",revision=689]]
 --explosions and effects
   function add_controller(_x,_y)
 
@@ -17,7 +17,7 @@ self.x=p.x+16
  end,
  draw=function(self)
 palt(0,false)
---rectfill(self.x,self.y,self.x+self.w,self.y+self.h,0)
+rectfill(self.x,self.y,self.x+self.w,self.y+self.h,0)
   spr(--[[pod_type="gfx"]]unpod("b64:bHo0AJQAAACjAAAA8BFweHUAQyAgEAT-DxGhdiFXER6hdiFnAR7xBywHDw4HAQ8AMScMJwgA8hkHDQcsER4hN_FnAR4hBxAHMXYxVwEeAScQJ-EFHgEHUAcRdgE3ATcBDADhBlcGBwgPGBgGCwgLCAcnAHARBgcwBwYHEQBSBggLGAdGAAEpABQLKADwAyE3MXYHOAY4Bx7xBDcBNwH_EQ=="),self.x,self.y)
  if btn(0) then
  	rectfill(self.x+2,self.y+8,self.x+4,self.y+11,10)
@@ -63,7 +63,7 @@ add(effect,{
      queued=true,
      init_spawn=true,
      poletimer=0,
-     valid=(level_type=="top down") and true or false,
+     valid=((level_type=="top down" or level_type=="3d")) and true or false,
      offset=0,
      polex=32,
      poley=0,
@@ -73,7 +73,8 @@ add(effect,{
  
 
  update=function(self)
- if level_type=="top down" then
+
+ if (level_type=="top down" or level_type=="3d") then
  	self.x=(cam_x+self.screenx+self.playeroffset)
  self.y=(cam_y+self.screeny)
  self.valid=true
@@ -117,14 +118,16 @@ end
  if self.valid then
  if self.queued then
  if self.init_spawn then
- 	if level_type=="top down" then
+ 	if level_type=="top down" or level_type=="3d" then
+ 	local yoffset= (level_type=="3d") and 20 or 0
  --	local offsetx= (self.id==0) and 0 or 20
- 	 create_player(self.x,self.y,self.id)
- 
+ 	 create_player(self.x,self.y-yoffset,self.id)
+
 elseif level_type=="side scrolling" then
   if scrolling=="horizontal" then
   create_player(self.x,cam_y-5,self.id)
- 	elseif scrolling=="vertical" then
+ 	elseif (scrolling=="vertical" or scrolling=="both") then
+ 
  	create_player(self.x,self.y-20,self.id)
  	
  	end
@@ -139,17 +142,25 @@ elseif level_type=="side scrolling" then
  for p in all (players) do
  
  	if p.player==self.id and p.landed then
-     
+     if p.dropdown then self.x=p.x
+     else
  	 self.x=(p.flp0==false) and p.x-16 or p.x+16 
  	 self.y=p.y
+ 	 end
+ 	 if p.dead then self.x=p.x
+ 	 end
+ 	  self.y=p.y
  	  self.player_last_x=self.x
  	  self.player_last_y=self.y
  	elseif not p.landed then
+
+ 	
  	self.x=self.player_last_x
  	self.y=self.player_last_y
  	
  	 end
  end
+ 
  end
 
 
@@ -159,10 +170,76 @@ elseif level_type=="side scrolling" then
  
  draw=function(self)
  local col=self.id==0 and 12 or 8
+-- rectfill(self.x,self.y,self.x+self.w,self.y+self.h,col)
+-- print(self.init_spawn,self.x,self.y,7)
+ --[[
+-- local lifeoffset=self.id==1 and 190 or 0
+-- local owner=player_state[self.id]
 --  rectfill(self.x,self.y,self.x+self.w,self.y+self.h,col)
---print(self.queued,self.x,self.y,7)
+
+ if not self.init_spawn then
+ for l=1,owner.lives do
+
+  palt(30,true)
+
+  spr(
+   39,
+   cam_x+lifeoffset+l*8,
+   cam_y+8
+  )
+
+  if l==4 then
+   break
+  end
+
+ end
+ end
+-- ]]
+ end
+  
+})
+
+end
+
+function add_wall_destroy(_x,_y)
+
+add(effect,{
+
+     x=_x*8,
+     y=_y*8,
+     active=false,
+     h=16,
+     w=64,
+ timer=0,
+
 
  
+
+ update=function(self)
+
+
+
+if (phase_complete and spawn==5) then
+for e = 0,self.w/8-1 do
+	mset(self.x/8+e,self.y/8,5)
+	mset(self.x/8+e,self.y/8+1,5)
+add_new_exp_spawner(self.x+8*e,self.y+10,2,5,"instant") 
+add_new_exp_spawner(self.x+8*e,self.y,2,3,"instant") 
+end
+--add_new_exp_spawner(self.x+8,self.y+7,2,2,"instant") 
+--add_new_exp_spawner(self.x+20,self.y+7,2,2,"instant") 
+--add_new_exp_spawner(self.x,self.y+7,2,2,"instant") 
+--add_new_exp_spawner(self.x,self.y+7,2,2,"instant") 
+del(effect,self)
+end
+ 
+ end,
+ 
+ draw=function(self)
+
+-- spr(self.sp,self.x,self.y)
+-- rect(self.x,self.y,self.x+self.w,self.y+self.h,7)
+-- print(tostring(self.active),self.x,self.y,7)
  end
   
 })
@@ -396,10 +473,44 @@ update=function(self)
  
  draw=function(self)
 --palt(30,true)
- spr(self.sp,self.x,self.y)
+ sspr(2,16,40,8,8,self.x-1,self.y-1,8,8)
 -- palt()
  end
   
+})
+
+end
+
+function add_shadow(_x,_y,_id)
+
+add(effect,{
+     is_shadow=true,
+     id=_id,
+     x=_x-7,
+     y=_y+5,
+		follow=0, 
+update=function(self)
+for p in all(players) do
+local plyxoff=(p.player==0) and 0 or 1
+if p.player==self.id then
+ self.x=p.x-plyxoff	
+ self.follow= (p.advancing) and p.y+5 or self.y
+end
+end
+ 
+ end,
+ 
+ draw=function(self)
+--palt(30,true)
+for p in all(players) do
+local offset= (p.player==0) and 1 or 2
+
+ if global_timer%2>=offset then
+ ovalfill(self.x,self.follow,self.x+8,self.follow+3,0)
+-- palt()
+end
+end
+end  
 })
 
 end
