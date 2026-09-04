@@ -1,4 +1,4 @@
---[[pod_format="raw",created="2026-04-07 11:38:53",modified="2026-08-29 21:24:39",revision=261]]
+--[[pod_format="raw",created="2026-04-07 11:38:53",modified="2026-09-03 20:07:13",revision=262]]
 -- Common player control functions
 
 function ply_run_left(_ply)
@@ -236,7 +236,7 @@ end
       ply.dx=0
     end
     
-    if collide_map(ply,"right",0) then
+    if (collide_map(ply,"right",0) or (collide_map(ply,"right",5) and not fanfare)) then
       ply.dx=0
     end   
    --]] 

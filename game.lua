@@ -1,4 +1,5 @@
---[[pod_format="raw",created="2026-02-06 05:20:50",modified="2026-08-29 23:11:56",revision=1874]]
+--[[pod_format="raw",created="2026-02-06 05:20:50",modified="2026-09-03 22:43:36",revision=1938]]
+--[[pod_format="raw",created="2026-02-06 05:20:50",modified="2026-09-03 08:03:57",revision=1892]]
 --[[pod_format="raw",created="2026-02-06 05:20:50",modified="2026-07-01 13:27:00",revision=1414]]
 --game state
 puptmr=50
@@ -25,12 +26,13 @@ paltimer=0
   	end
   end
   end
-  
+--  if not transfer then
   spawn+=1
-  
+--
+--  end
  if spawn>=5 then 
  	spawn=5
- 
+
  end 
 
  paltimer+=1
@@ -39,7 +41,7 @@ paltimer=0
  	paltimer=0
  end
  
- 
+
 
 
 
@@ -70,10 +72,10 @@ end
 
    --level complete
  if complete==true then
-  if level==1 then
+ 
   level_clear()
-  end
-  clear+=1
+
+ 
   
   end
 
@@ -82,22 +84,26 @@ if level_type=="3d" then
 end
   
   if clear >=200 and fanfare==false then
-  music(1)
+  music(level~=5 and 1 or 13)
   fanfare=true
   end
   for p in all(players) do
-  if clear>=500 and p.dx~=0 then
+  if clear>=500 and (p.dx~=0 or stat(466)~=-1) then
   	clear=500
   end
   end
   
 
-  if clear>=600 then 
+  if clear>=600  then 
   level_reset()
   timer=0
+  if level~=5 then
   level+=1
   scene="card"
-
+  else
+  music(3)
+  scene="end"
+end
   
   end
 
@@ -115,6 +121,8 @@ end
   
   for e in all(enemy) do
    e:update()
+   if complete then e.life=0
+   end
    if e.is_runner then
    local snapped_to_slope = resolve_slope(e)
 
@@ -134,6 +142,8 @@ end
  
   for eb in all(ebullet) do
    eb:update()
+   if complete then eb.life=0
+   end
    end
 
 
@@ -356,10 +366,19 @@ if level==1 then
  add_new_cannon(211,8)
  end
  end
+ 
+ if (level==5 and chunk==4) then
+  if pl.x>=58*8 and not pl.dead and bfight==false then
+ 
+ bfight=true
+ add_boss(77,9)
+ add_new_cannon(76,6)
+ end
+ end
   
   end
   
-   if level==2 and cam_y<=30 then
+   if ((level==2 and cam_y<=30) or ((level==4 and chunk==2) and cam_y<=1) and #enemy==0) then
    if spawn==5 and not complete then
    music(-1,1000)
    complete=true
@@ -421,23 +440,26 @@ end
 	
 end
 
-
+if not transfer then
 
 if scrolling=="both" then
-update_camera_horizontal()
-update_camera_vertical()
-elseif scrolling == "horizontal" then
     update_camera_horizontal()
-elseif scrolling == "vertical" then
+    update_camera_vertical()
+elseif scrolling=="horizontal" then
+    update_camera_horizontal()
+elseif scrolling=="vertical" then
     update_camera_vertical()
 end
 
-clamp_topdown_camera_blocked_players()
+update_camera_autoscroll()
 
- camera(cam_x,cam_y)
- if level~=0 then
+clamp_topdown_camera_blocked_players()
+camera(cam_x,flr(cam_y))
+ end
+
+-- if level~=0 then
 update_spawn_stream()
-end
+--end
 for p in all(pup) do
   p:update()
    resolve_slope(p)
@@ -552,23 +574,30 @@ end
 
 
 function draw_game()
+ camera(cam_x,cam_y)
+
  cls(0)
 
 
 -- draw cached layer 3 first if it's a background
 map()
 -- draw active layer 1 gameplay map
-if level~=0 then
+--if level~=0 then
 draw_cached_layer(visual_layer_1)
-end
+--end
 
 if ((level==3 and phase==1) or (level_type=="3d")) and not bfight then
+palt(30,true)
+palt(0,false)
 local offset= (phase_complete) and 1 or 0
 	spr((247+offset)+screen)
 end
-
+palt()
+palt(30,true)
  for eb in all(ebullet) do
+ 
   eb:draw()
+  
  end
 
  if level_type == "top down" then

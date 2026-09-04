@@ -1,3 +1,5 @@
+--[[pod_format="raw",created="2025-02-02 19:06:08",modified="2026-09-04 00:14:28",revision=1510]]
+--[[pod_format="raw",created="2025-02-02 19:06:08",modified="2026-09-03 09:46:28",revision=1408]]
 --[[pod_format="raw",created="2025-02-02 19:06:08",modified="2026-08-30 01:20:00",revision=1250]]
 --contra concept 
 --by turbochop
@@ -26,34 +28,41 @@ function _init()
  poke(0x5f5c, 255)
  vid(3)
  full_reset()
- 
+
 end
 
 
 slow=0
 function _update()
+grav=debug and 0 or .7
+
 global_timer+=1
 if global_timer>=30 then global_timer=0
 end
---slow+=1
---if slow>1 then
---slow=0
---end
---if key("2") then
--- slow=1	
---end
 
- 
+
+if transfer then
+  update_camera_transfer()
+  end
 if fullreset then full_reset()
 end
 if (scene=="title")             update_title()
-if (scene=="game" and slow==0)  update_game() 
+if scene=="game" then
+
+ 
+
+  update_game()
+
+ 
+end
 if (scene=="wipe")              update_wipe()
 if (scene=="card")              update_card()
 if (scene=="gameover")          update_gameover()
 if (scene=="continue")          update_continue()
 if (scene=="end")               update_end()
-
+if keyp("k") then
+debug=not debug
+end
 end
 
 function _draw()
@@ -68,19 +77,34 @@ if (scene=="gameover")  draw_gameover()  palt()
 if (scene=="continue")  draw_continue() palt()
 if (scene=="end")       draw_end()  palt()
 
---print(continue,cam_x,50,7)
+--print(scrolling,cam_x,cam_y+50,8)
+--print(scroll_dir,cam_x,cam_y+58,9)
+--print(level_type,cam_x,cam_y+66,9)
 --print("weapon is "..player_state[0].weapon,cam_x,60,7)
 --print("rapid is "..tostring(player_state[0].rapid),cam_x,70,7)
 --print("copied is "..tostring(player_state[0].copied),cam_x,80,7)
 --print("respawn is "..player_state[0].respawn,cam_x,90,7)
 end
 
-
+function transfer_init()
+	transfer=true
+end
+function init_map_resources()
+    source_layers=fetch("map/1.map")
+    play_layers=fetch("map/0.map")
+end
 
 function full_reset()
+debug=false
+
+
+source_layers=nil
+play_layers=nil
+init_map_resources()
+
   
    mgun,rapid,spread,laser,fire,homing=27,28,29,30,31,37  
- 
+
    players={}
   lifepool=3
    
@@ -129,7 +153,10 @@ function full_reset()
         grav=.07
         fric=.23
        reset_camera_state()
-  spawn_layer = {}
+       transfer=false
+       transfer_state=nil
+       chunk_transfer_pending=false
+   spawn_layer = {}
 spawn_scan_x = -1
    map_start=0
 
@@ -139,11 +166,16 @@ spawn_scan_x = -1
        scene="title"
        multiplayer=false
        level=1
+       chunk=1
+       width=30
+       height=16
        level_type="side scrolling"
        scrolling="horizontal"
        scroll_dir = "left"
-       
-      
+       scroll_front = 119
+       map_end_x = 0
+       map_end_y = 0
+       auto_cam_y=nil
        -- 3d mode level phases
        
        phase_complete=false
@@ -157,12 +189,10 @@ spawn_scan_x = -1
        delay_timer_max=60
        
        
-       song= {3,0,14,28,26}  
+       song= {3,0,14,28,36}  
 
-scroll_front = 119
-map_end_x = 0
-map_end_y = 0
-       
+
+
     pallette=7
        timer=0
       timer1=0
@@ -202,12 +232,16 @@ visual_layer_1 = {}
         enemies=0
          bfight=false  
   reset_camera_state()
+  transfer=false
+  transfer_state=nil
+  chunk_transfer_pending=false
    spawn_layer = {}
   spawn_scan_x = -1
       map_start=0
           timer=0
          timer1=0
-     
+          chunk=1
+          auto_cam_y=nil
        -- 3d mode level resets
        
        phase_complete=false
@@ -219,7 +253,7 @@ visual_layer_1 = {}
        bothready=false
        delay_timer=0
        delay_timer_max=60
-       
+      
       timer2=0
       timer3=0
       spawn=0

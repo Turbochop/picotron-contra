@@ -1,4 +1,4 @@
---[[pod_format="raw",created="2026-03-02 22:46:00",modified="2026-08-29 22:52:23",revision=2002]]
+--[[pod_format="raw",created="2026-03-02 22:46:00",modified="2026-09-03 22:50:04",revision=2085]]
 --[[pod_format="raw",created="2026-03-02 22:46:00",modified="2026-08-03 07:12:29",revision=1165]]
 --Modular player object
 
@@ -139,7 +139,7 @@ can_jump=true,
     gameover=false,
     go_timer=0,
     pallette=7,
-   rapid=false,
+   rapid=player_state[_player].rapid,
    water=false,
    watertimer=0,
   weapon=player_state[_player].weapon,
@@ -150,8 +150,52 @@ death_timer=0,
 --   lives=lifepool,
   jump_t=0,
   update=function(self)
+  
+-------------PLAYER NOCLIP------------  
+-------- debug variable is controlled in main
 
   
+if debug then
+self.respawn=15
+
+local delta_max=1.6
+
+
+	if btn(0) then
+    self.dx -= (self.dx > -delta_max) and .05 or 0 
+
+    end
+if btn(1) then
+    self.dx += (self.dx < delta_max) and .05 or 0 
+
+    end
+if btn(2) then
+   self.dy -= (self.dy > -delta_max) and .05 or 0 
+
+   end
+if btn(3) then
+    self.dy += (self.dy < delta_max) and .05 or 0 
+
+    end
+    if  btn()==0 then
+    if self.dx~=0 then
+    self.dx-= (self.dx>.05) and .05 or -.05
+    end
+    if self.dy~=0 then
+    self.dy-= (self.dy>.05) and .05 or -.05
+    
+    end
+    
+end
+    
+self.x+=self.dx
+self.y+=self.dy
+
+end
+
+-------------------------------------------
+
+
  if self.respawn==.2 then
  
 --player_state[self.player].lives-=1
@@ -171,7 +215,7 @@ death_timer=0,
   self.jumping=false
   end
  
- if self.dead then
+ if self.dead or debug or complete then
  
  	self.blink=0
  end
@@ -180,6 +224,7 @@ death_timer=0,
 elseif self.x<p.x then self.lead=false
  end
    end
+   if not (level==5 and fanfare) then
    if not multiplayer then self.lead=true end
    if self.health==0 and not self.gameover then 
     ply_dead(self)
@@ -187,20 +232,21 @@ elseif self.x<p.x then self.lead=false
 --    player_collide(self)
     elseif self.health==1 then 
    
-   if level_type=="side scrolling" or level_type=="3d" then
+   if (level_type=="side scrolling" or level_type=="3d") and not debug  then
    ply_mvmnt_side(self)
     ply_sound(self)
-    if level_type=="side scrolling" then
+    if level_type=="side scrolling" and not debug then
+    
     ply_aim_side(self)
     aiming_side(self)
-    elseif level_type=="3d" then
+    elseif level_type=="3d" and not debug then
     ply_aim_3d(self)
     aiming_3d(self)	
     end
       ply_fire(self)
     ply_anim_side(self)
     
-   elseif level_type=="top down" then
+   elseif level_type=="top down" and not debug then
     ply_mvmnt_top(self)
      
     ply_aim_top(self)
@@ -212,7 +258,7 @@ elseif self.x<p.x then self.lead=false
    
     
     end
- 
+ end
 
 -- 
  if self.gameover then
@@ -465,47 +511,6 @@ if not self.dead then
 end
     end
 
-  
-
---   elseif self.prone then
-
---    if self.on_slope then
-  
---
---   else
---     sspr(
---      player_sheet,
---      56,32,
---      8,16,
---      self.x,self.y-8,
---      8,16,
---      self.flp0,self.inv0
---     )
---end
---    else
--- if self.dead then
---     sspr(
---      player_sheet,
---      48,24,
---      16,8,
---      self.x-6,self.y,
---      16,8,
---      self.flp0,self.inv0
---     )
-----   else
-----    sspr(
-----      player_sheet,
-----      40,32,
-----      16,8,
-----      self.x-6,self.y-1,
-----      16,8,
-----      self.flp0,self.inv0
-----     )
---
---end
---    end
-
-
    elseif not self.jumping then
 
     sspr(
@@ -612,10 +617,16 @@ end
  end
  end
  end
---print(self.dead,self.x+20,self.y,7)
---print(flr(self.x+4),self.x,self.y-16,7)
+--print(self.running,self.x+20,self.y,7)
+--print(self.dx,self.x,self.y-8,7)
+--print(self.dy,self.x,self.y-16,7)
+--print(flr((self.x+4)/8),self.x,self.y-16,7)
 --print(flr((self.y+self.h)/8),self.x,self.y-8,7)
---print(player_state[self.player].lives,self.x,self.y-8,7)
+if debug then
+local flashing= (global_timer%10>5) and 8 or 9
+	print("[Debug]",cam_x+20,cam_y+50,flashing)
+end
+--print(player_state[self.player].rapid,self.x+20,self.y-8,8)
  pal()
  palt(30,true)
 

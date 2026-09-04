@@ -1,4 +1,4 @@
---[[pod_format="raw",created="2026-02-06 05:15:57",modified="2026-08-29 23:17:56",revision=689]]
+--[[pod_format="raw",created="2026-02-06 05:15:57",modified="2026-09-03 22:25:52",revision=734]]
 --explosions and effects
   function add_controller(_x,_y)
 
@@ -46,6 +46,50 @@ palt(30,true)
 
 end
 
+function add_camera_scroller_vert(_x,_y,_target_y)
+    add(effect,{
+        x=_x*8,
+        y=_y*8,
+
+        is_scroller=true,
+        active=false,
+
+        speed=.6,
+        target_y=_target_y or 0,
+
+        update=function(self)
+            if not self.active then
+                for pl in all(players) do
+                    -- Activates when any living player climbs above the line.
+                    if pl.y<self.y and not pl.gameover then
+                        self.active=true
+                        auto_cam_y=cam_y
+                        break
+                    end
+                end
+            end
+
+            if self.active then
+                auto_cam_y=max(
+                    self.target_y,
+                    auto_cam_y-self.speed
+                )
+
+                if auto_cam_y<=self.target_y then
+--                scrolling="horizontal"
+--                scroll_dir="left"
+                    del(effect,self)
+                end
+            end
+        end,
+
+        draw=function(self)
+--            line(cam_x,self.y,cam_x+239,self.y,9)
+--            print(self.active,cam_x,cam_y,7)
+        end
+    })
+end
+
 function add_player_spawner(_x,_y,_type)
 
 add(effect,{
@@ -63,7 +107,8 @@ add(effect,{
      queued=true,
      init_spawn=true,
      poletimer=0,
-     valid=((level_type=="top down" or level_type=="3d")) and true or false,
+--     valid=((level_type=="top down" or level_type=="3d")) and true or false,
+     valid=true,
      offset=0,
      polex=32,
      poley=0,
@@ -138,7 +183,7 @@ elseif level_type=="side scrolling" then
  	end
  end
  
- if level_type=="side scrolling" and scroll_dir=="up" then
+ if level_type=="side scrolling" and (scrolling=="vertical" or scrolling=="both") then
  for p in all (players) do
  
  	if p.player==self.id and p.landed then
@@ -219,7 +264,7 @@ add(effect,{
 
 
 
-if (phase_complete and spawn==5) then
+if ((phase_complete or complete) and spawn==5) then
 for e = 0,self.w/8-1 do
 	mset(self.x/8+e,self.y/8,5)
 	mset(self.x/8+e,self.y/8+1,5)
@@ -230,6 +275,9 @@ end
 --add_new_exp_spawner(self.x+20,self.y+7,2,2,"instant") 
 --add_new_exp_spawner(self.x,self.y+7,2,2,"instant") 
 --add_new_exp_spawner(self.x,self.y+7,2,2,"instant") 
+if level==4 then
+	music(127)
+end
 del(effect,self)
 end
  
@@ -563,20 +611,20 @@ end
 
 
 function level_clear()
-
+ clear+=1
 timer2+=.2
 if timer2>=1 then timer2=0
 
 timer3+=1
 
 end
-
+if level==1 then
 if timer3==1 then
 
 
-mset(212,10,149)
-mset(212,11,167)
-mset(212,12,183)
+mset(212,10,270)
+mset(212,11,270)
+mset(212,12,270)
 
 end
 
@@ -630,5 +678,65 @@ mset(217,11,167)
 mset(217,12,183)
 
 end
+end
+if level==5 then
+if timer3==1 then
 
+
+mset(77,9,270)
+mset(77,10,270)
+mset(77,11,270)
+
+end
+
+if timer3==2 then
+
+add_new_exp_spawner(78*8+8,10*8+8,2,0)
+add_new_exp(78*8+8,11*8+8)
+add_new_exp(78*8+8,12*8+8)
+mset(78,9,149)
+mset(78,10,167)
+mset(78,11,183)
+
+end
+
+if timer3==3 then
+
+
+mset(79,9,149)
+mset(79,10,167)
+mset(79,11,183)
+
+end
+
+if timer3==4 then
+
+add_new_exp(80*8+8,9*8+8)
+add_new_exp(80*8+8,10*8+8)
+add_new_exp(80*8+8,11*8+8)
+mset(80,9,149)
+mset(80,10,167)
+mset(80,11,183)
+
+end
+
+if timer3==5 then
+
+
+mset(81,9,149)
+mset(81,10,167)
+mset(81,11,183)
+
+end
+
+if timer3==6 then
+
+add_new_exp(82*8+8,9*8+8)
+add_new_exp(82*8+8,10*8+8)
+add_new_exp(82*8+8,11*8+8)
+mset(82,9,149)
+mset(82,10,167)
+mset(82,11,183)
+end
+end
 end

@@ -1,5 +1,4 @@
---[[pod_format="raw",created="2026-02-06 05:21:09",modified="2026-08-29 20:37:51",revision=160]]
-
+--[[pod_format="raw",created="2026-02-06 05:21:09",modified="2026-09-04 00:10:49",revision=175]]
 -- wipe state
 -- begins the level 
 -- with some style
@@ -9,22 +8,28 @@ function starting_scene()
 
 if level==1 then
 level_type="side scrolling"
-map_helper(481,0,30)
+map_helper(481,0,30,16)
 end	
 
 if level==2 then
 level_type="top down"
-map_helper(481,17,30)
+map_helper(481,17,30,16)
 end
 if level==3 then
 level_type="side scrolling"
 
-map_helper(481,34,30)
+map_helper(481,34,30,16)
 end
 if level==4 then
-level_type="side_scrolling"
-scroll_dir="up"
-map_helper(481,53,30)
+level_type="side scrolling"
+
+map_helper(481,52,30,16)
+end
+
+if level==5 then
+level_type="side scrolling"
+
+map_helper(481,93,30,16)
 end
 end
 
@@ -45,21 +50,24 @@ function draw_wipe()
  draw_cached_layer(visual_layer_1)
 
 	if level==3 then
+	palt(30,true)
+palt(0,false)
 	spr(248)
 	end
-
+ 
 
  if multiplayer then
-  for l=1,lifepool do 
+  for l=1,player_state[1].lives do 
    spr(39,(cam_x+190)+l*8,cam_y+8)
    if l==4 then break end
   end	
  end
 
- for l=1,lifepool do 
+ for l=1, player_state[0].lives do 
   spr(39,cam_x+l*8,cam_y+8)
   if l==4 then break end
  end
+
 if level_type=="side scrolling" then
  rectfill(timer,0,250,200,0)
  elseif level_type=="top down" or scroll_dir=="up" then
@@ -67,7 +75,6 @@ if level_type=="side scrolling" then
  end
  rectfill(0,128,240,136,0)
 end
-
 
 
 

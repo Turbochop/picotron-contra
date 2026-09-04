@@ -1,4 +1,4 @@
---[[pod_format="raw",created="2026-02-06 05:16:53",modified="2026-08-30 00:01:17",revision=1055]]
+--[[pod_format="raw",created="2026-02-06 05:16:53",modified="2026-09-03 22:17:34",revision=1057]]
 local enemysheet=3
 
 function add_new_ebullet(_x,_y,_dx,_dy,_z,_dz)
@@ -255,7 +255,7 @@ if self.timer2>2 and p and self.life>=1 then
   add_new_ebullet(self.orgnx-4, self.y+4, self.dx, self.dy)
   self.timer2 = 0
 end
-if self.life<=.5 or complete then 
+if self.life<=.5  then 
 self.life=0
 add_new_exp_spawner(self.x+8,self.y+8,2,2,"instant")
 mset(self.x/8,self.y/8,171)
@@ -381,7 +381,7 @@ add(enemy,{
  
  end
  
- if (self.x<=cam_x-16 or self.y>cam_y+128) or (gameover and g_otimer>=1.9) or complete then 
+ if (self.x<=cam_x-16 or self.y>cam_y+128) or (gameover and g_otimer>=1.9)  then 
  
  del(enemy,self)
  
@@ -925,7 +925,7 @@ pallette=2,
  add_new_exp_spawner(self.x,self.y+7,2,2,"instant") 
 -- sfx(263,15)
  del(enemy,self)
- music(13)
+ music(127)
  complete=true
  puptmr=-100
  end
@@ -981,7 +981,7 @@ if self.timer>1 and self.other==false then
  add_new_bbullet(self.x,self.y,rnd(.5) + 1)
  end
  
- if self.life<=.5 or complete then 
+ if self.life<=.5  then 
  add_new_exp_spawner(self.x,self.y,2,2,"instant")
 
  del(enemy,self)
@@ -1032,7 +1032,7 @@ add(enemy,{
  add_new_bbullet(self.x,self.y,rnd(.5) + 1)
  end
  
- if self.life<=.5 or complete then 
+ if self.life<=.5 then 
   add_new_exp_spawner(self.x,self.y,2,2,"instant")
 
 

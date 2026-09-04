@@ -1,4 +1,4 @@
---[[pod_format="raw",created="2026-04-07 10:50:13",modified="2026-08-30 00:07:15",revision=344]]
+--[[pod_format="raw",created="2026-04-07 10:50:13",modified="2026-09-03 22:56:20",revision=373]]
 
 --Player side-scrolling functions
 
@@ -42,25 +42,32 @@ if clear>150 and clear<190 then
 end
 
 if clear>200 and ply.x<map_end_x+20 then 
-
+if level~=5 then
 ply_run_right(ply)
+end
+if ply.x>map_end_x+4 then
+ply.dx=0
+ply.dy=0
+end
 end
 
 
-if level_type~="3d" then
-if clear>220 and ply.x<212*8
+if level_type~="3d" and level~=5 then
+if clear>220 
+
+and ply.x+4 < cam_x+220
 and (ply.dx<.6 and not ply.falling) 
 and not ply.jumping then 
 ply.dy-=1.5
 ply.jumping=true
 end
 end
---if clear>220 and (ply.x>191*8 and ply.x<192*8)
-----and (ply.dx<.6 and not ply.falling) 
---and not ply.jumping  then 
---ply.dy-=1.8
---ply.jumping=true
---end
+if clear>220 and (ply.x>191*8 and ply.x<192*8)
+--and (ply.dx<.6 and not ply.falling) 
+and not ply.jumping  then 
+ply.dy-=1.8
+ply.jumping=true
+end
 
 
 --post hit invincibilty
@@ -88,7 +95,7 @@ end
 --jump down through platforms
 
 if ply.prone and btnp(5,ply.player) 
-and collide_map(ply,"down",3) then 
+and (collide_map(ply,"down",3)  and not collide_map(ply,"down",5)) then 
    ply.dropdown=true
    ply.jumping=true
    ply.jump_t=0
@@ -121,8 +128,9 @@ end
 
 
 --controls
-if not ply.advancing then
+if not ply.advancing or fanfare then
 if clear<150 then 
+ 
  if btn(1,ply.player)  then 
 
  ply_run_right(ply)
@@ -136,6 +144,7 @@ end
 
   end
   end
+
    end
   if not fanfare then
    if ply.running
@@ -744,14 +753,18 @@ local snapped_to_slope = false
   end 
  end
 -- 
- if ply.dx>0 then
+ if ply.dx>0  then
   ply.dx=limit_speed(ply.dx,ply.max_dx) 
-  if collide_map(ply,"right",0) and not ply.on_slope then
+  if collide_map(ply,"right",0) and ply.x+8<cam_x+220 and not ply.on_slope then
 
  ply.dx=0
 
     end
+if (collide_map(ply,"right",5) and not fanfare) then
 
+ ply.dx=0
+
+    end
  end
 
 if not ply.advancing then

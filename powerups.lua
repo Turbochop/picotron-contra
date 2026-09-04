@@ -1,4 +1,4 @@
---[[pod_format="raw",created="2026-02-06 05:18:16",modified="2026-08-17 03:23:03",revision=175]]
+--[[pod_format="raw",created="2026-02-06 05:18:16",modified="2026-09-03 22:46:08",revision=181]]
 
 --capsules and powerups
 function add_new_cap_spawner_hor(_x,_y,_item,_dir)
@@ -17,7 +17,7 @@ add(effect,{
 
 
  for pl in all(players) do
- if self.x<pl.x then 
+ if self.x<pl.x+4 then 
  local direction=(self.dir=="left") and -1 or 1
  local spawn_side=(self.dir=="left") and cam_x+240 or cam_x-16
  add_new_cap_hor(spawn_side,self.y,direction,self.item,_dir)
@@ -265,13 +265,14 @@ add(pup,{
     owner=_owner,
     h=8,
     d=8,
+    timer=0,
     dz=_dz or 0,
    dx=_x<cam_x+110 and .4 or -.4,
    dy=-1.50,
    sp=_item,
 
  update=function(self)
- 
+ self.timer+=1
  self.x+=self.dx
  self.y+=self.dy
  self.dy+=grav/2
@@ -341,7 +342,7 @@ end
  or self.y>=cam_y+128 
  or self.y<=cam_y-60
  or gameover==true
- 
+ or self.timer>=420
  then
 
  del(pup,self)
@@ -353,8 +354,10 @@ end
  palt(30,true)
  if global_timer%14>=7 then
  pal(8,20)
- end 
+ end
+ if (self.timer<300 or (self.timer>=300 and global_timer%6>=3))  then 
  spr(self.sp,self.x,self.y)
+ end
 pal()
 palt(30,true)
 -- print(self.sp,self.x,self.y,9)

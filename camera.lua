@@ -1,6 +1,5 @@
---[[pod_format="raw",created="2026-04-11 17:24:57",modified="2026-08-11 13:30:18",revision=83]]
---[[pod_format="raw",created="2026-04-11 17:24:57",modified="2026-08-07 19:15:19",revision=81]]
-
+--[[pod_format="raw",created="2026-04-11 17:24:57",modified="2026-09-03 20:26:37",revision=128]]
+--[[pod_format="raw",created="2026-04-11 17:24:57",modified="2026-09-03 09:58:08",revision=124]]
 -- Camera update
 
 function camera_respawn_lerp(pl,current,target)
@@ -27,6 +26,46 @@ function reset_camera_state()
     topdown_camera_x_blocked=false
     topdown_camera_y_blocked=false
 end
+
+function update_camera_transfer()
+    -- The new chunk decides where its camera starts. Keep the old camera
+    -- until map_helper() has loaded that chunk and established its start.
+    transfer_state={
+        old_cam_x=cam_x,
+        old_cam_y=cam_y
+    }
+
+    spawn=0
+    chunk+=1
+    transfer=false
+    chunk_transfer_pending=false
+end
+
+function finish_camera_transfer()
+    if not transfer_state then
+        return
+    end
+
+    -- Preserve screen positions across any destination camera origin:
+    -- new_obj-new_cam = old_obj-old_cam
+    local shift_x=cam_x-transfer_state.old_cam_x
+    local shift_y=cam_y-transfer_state.old_cam_y
+    local groups={players,pup,bullet,ebullet,effect,enemy}
+
+    for group in all(groups) do
+        for obj in all(group) do
+            if obj.x~=nil then
+                obj.x+=shift_x
+            end
+            if obj.y~=nil then
+                obj.y+=shift_y
+            end
+        end
+    end
+
+    transfer_state=nil
+end
+
 function is_vertical_scroll_up()
     return scroll_dir == "up"
 end
@@ -117,12 +156,22 @@ end
 return false
 end
 function set_camera_for_map_start()
+    cam_x=0
+    cam_y=0
+
     if scrolling == "vertical" or scrolling == "both" then
         local bottom_limit = max(0, map_end_y - 128)
         cam_y = is_vertical_scroll_up() and bottom_limit or 0
-        cam_y_min = cam_y
         solo_front_y = get_vertical_front()
     end
+
+    cam_x_min=cam_x
+    cam_y_min=cam_y
+    solo_front_x=110
+    last_active_count_x=0
+    last_active_count_y=0
+    topdown_camera_x_blocked=false
+    topdown_camera_y_blocked=false
 end
 function update_camera_horizontal()
 local old_cam_x = cam_x
@@ -179,6 +228,22 @@ if cam_x>cam_x_min then
     cam_x_min=cam_x
 end
 end
+
+function update_camera_autoscroll()
+    if auto_cam_y==nil then
+        return
+    end
+
+    local bottom_limit=max(0,map_end_y-128)
+    auto_cam_y=mid(0,auto_cam_y,bottom_limit)
+
+    -- Smaller Y means farther upward.
+    cam_y=flr(min(cam_y,auto_cam_y))
+
+    -- Keep the normal ratchet synchronized.
+    cam_y_min=min(cam_y_min,cam_y)
+end
+
 function update_camera_vertical()
     local old_cam_y = cam_y
     topdown_camera_y_blocked=false

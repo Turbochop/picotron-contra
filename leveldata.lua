@@ -1,4 +1,5 @@
---[[pod_format="raw",created="2026-06-25 20:07:31",modified="2026-08-29 22:29:01",revision=206]]
+--[[pod_format="raw",created="2026-06-25 20:07:31",modified="2026-09-03 21:47:05",revision=301]]
+--[[pod_format="raw",created="2026-06-25 20:07:31",modified="2026-09-03 09:43:59",revision=261]]
 function spawn_players()
 local spawnx= (level_type=="side scrolling") and cam_x or cam_x+50 
 local spawny= (level_type=="side scrolling") and cam_y or cam_y+200
@@ -18,25 +19,17 @@ if level_type=="3d" then
 local level=_level
 --==Test Level
 
-if level==0 then
 
- level_type="side scrolling"
-  scrolling="horizontal"
---spawn_players()
-	map_helper(0,0,220)
-
- end
---==Test Level
 
 --All levels begin from the top-left most tile. 
 --Remember this when setting scroll stops
 
 if level==1 then
-
+if chunk==1 then
  level_type="side scrolling"
   scrolling="horizontal"
 --spawn_players()
-	map_helper(0,16,220)
+	map_helper(0,16, width, height)
 -- map_helper(0, 80, 26, 220)
 -- spawn_scan_x = -1
 --create_player(cam_x+50,cam_y+20,0)
@@ -49,16 +42,20 @@ if level==1 then
  add_new_cap_spawner_hor(166,4,homing)
  add_new_cap_spawner_hor(166,8,laser)
  end
- 
+ if chunk==2 then
+	map_helper(90,16,width,height)
+ end
+ end
  
  
  if level==2 then
+ if chunk==1 then
   level_type="top down" 
  scrolling="vertical"
  scroll_dir = "up"
 --spawn_players()
 --	map_helper(0,96,220)
- map_helper(0, 32, 32, 512)
+ map_helper(0, 33,  width, height)
 -- spawn_scan_x = -1
 --create_player(cam_x+50,cam_y+20,0)
 
@@ -69,7 +66,7 @@ if level==1 then
 -- add_new_cap_spawner(59,4,rapid)
 -- add_new_cap_spawner(100,9,rapid)
 -- add_new_cap_spawner(166,4,mgun)
- 	
+	end
  end
  
   if level==3 then
@@ -112,27 +109,76 @@ if level==1 then
  end
  
  if level==4 then
-  level_type="side scrolling" 
+ if chunk==1 then
+ level_type="side scrolling"
+ scrolling="horizontal"
+ scroll_dir = "left"
+ map_helper(0, 143, width, height)
+ end
+ if chunk==2 then
+
+ level_type="side scrolling"
  scrolling="vertical"
  scroll_dir = "up"
 --spawn_players()
 --	map_helper(0,96,220)
- map_helper(30, 32, 32, 512)
+ map_helper(31, 33, width, height)
 -- spawn_scan_x = -1
 --create_player(cam_x+50,cam_y+20,0)
 
 -- add_bridge_destroy(46*8,7*8)
 -- add_bridge_destroy(67*8,7*8)
-add_new_cap_spawner_vert(150,700,mgun)
-add_new_cap_spawner_vert(100,600,laser)
-add_new_cap_spawner_vert(75,600,homing)
+add_new_cap_spawner_vert(200,416,mgun)
+
+--add_new_cap_spawner_vert(100,600,laser)
+--add_new_cap_spawner_vert(75,600,homing)
 --add_new_cap_spawner_vert(100,830,spread)
 --add_new_cap_spawner_vert(100,830,spread)
 -- add_new_cap_spawner(32,3,spread)
 -- add_new_cap_spawner(59,4,rapid)
 -- add_new_cap_spawner(100,9,rapid)
 -- add_new_cap_spawner(166,4,mgun)
+add_wall_destroy(12,6)
  	
  end
+ end
  
+ --==Test Level
+ 
+ if level==5 then
+if chunk==1 then
+ level_type="side scrolling"
+  scrolling="horizontal"
+  scroll_dir="left"
+--spawn_players()
+	map_helper(0,0, width, height)
+	add_new_cap_spawner_hor(60,3,rapid,"left")
+
+ end
+ if chunk==2 then
+ level_type="side scrolling"
+  scrolling="both"
+  scroll_dir="down"
+--spawn_players()
+	map_helper(64,33, width, height)
+
+ end
+  if chunk==3 then
+ level_type="side scrolling"
+  scrolling="vertical"
+  scroll_dir="up"
+--spawn_players()
+	map_helper(137,70, width, height)
+
+ end
+  if chunk==4 then
+ level_type="side scrolling"
+  scrolling="horizontal"
+  scroll_dir="left"
+--spawn_players()
+	map_helper(170,33, width, height)
+
+ end
+ end
+
 end
