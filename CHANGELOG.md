@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-09-13 — Homing-missile rapid-fire patch
+
+Compared with `c7e1277` (`Import latest Contra cart with scoring and enemy variants`):
+
+- Homing missiles now copy their owner's rapid-fire flag when spawned, activating the rapid-specific speed behavior and fixing the issue recorded in the previous import.
+- Tuned homing acceleration to `0.04` per update for rapid missiles and `0.02` for normal missiles, with speed thresholds of `4` and `2`, respectively.
+- Imported the updated cartridge and synchronized its 29 decoded project files. Other changes are export metadata; graphics, maps, sounds, and other gameplay code are unchanged.
+
+Validation: all 29 decoded files and the staged cartridge match the supplied export byte for byte; Picotron Lua syntax checks passed. Focused Lua checks passed 81 assertions covering 2D/3D missile spawning, rapid inheritance, acceleration, speed thresholds, steering, and target loss. The existing inclusive threshold check allows one increment beyond the threshold (`2.02` or `4.04`). Interactive Picotron gameplay was not tested.
+
 ## 2026-09-13 — Scoring, enemy variants, and movement refinements
 
 Compared with `d2fd00d` (`Add multiscroll chunk progression`):
@@ -16,7 +26,7 @@ Compared with `d2fd00d` (`Add multiscroll chunk progression`):
 - Increased homing-missile acceleration. Updated fireball animation, directional flipping, secondary flame effects, and weapon sound-channel timing.
 - Refined exit-wall and bridge destruction tiles, prevented exit-wall clearing during game over, and stopped horizontal player movement during the final-stage fanfare. Updated supporting graphics, map placement, and sound data.
 
-Known issue in the supplied build: the new higher homing-missile speed limit checks `self.rapid`, but missiles do not inherit their owner's rapid flag, so that branch is not activated by the existing spawn path.
+Known issue in this import, resolved by the missile patch above: the new higher homing-missile speed limit checks `self.rapid`, but missiles do not inherit their owner's rapid flag, so that branch is not activated by the existing spawn path.
 
 Validation: all 29 decoded files match the supplied cartridge byte for byte; Picotron Lua syntax checks passed. All 34 existing slope, marksman, and map-edge regression tests passed against the imported source using a temporary runner that supplies the new `cam_y` test fixture. Interactive Picotron gameplay was not tested.
 

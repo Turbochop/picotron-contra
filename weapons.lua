@@ -1,4 +1,4 @@
---[[pod_format="raw",created="2026-02-06 05:18:49",modified="2026-09-13 10:12:52",revision=1129]]
+--[[pod_format="raw",created="2026-02-06 05:18:49",modified="2026-09-13 13:18:02",revision=1136]]
 --weapons
 local weaponsheet=4
 
@@ -567,7 +567,7 @@ last_dist=nil,
 
     life=_life,
     owner=_ply,
-
+    rapid=_ply.rapid,
     is_homing=true,
     sp=16,
 
@@ -579,8 +579,8 @@ if self.target==nil then
 	self.life-=(level_type=="3d") and 1.5 or 1
 end
       if self.target then
-      maxspeed=self.rapid and 5 or 2
-      self.speed+= (self.speed<=maxspeed) and .04 or 0
+      maxspeed=self.rapid and 4 or 2
+      self.speed+= (self.speed<=maxspeed) and (self.rapid and .04 or .02) or 0
         if can_home_target(self.target) then
 
           self.target_x=
