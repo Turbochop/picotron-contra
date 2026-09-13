@@ -1,6 +1,4 @@
---[[pod_format="raw",created="2025-02-02 19:06:08",modified="2026-09-04 00:14:28",revision=1510]]
---[[pod_format="raw",created="2025-02-02 19:06:08",modified="2026-09-03 09:46:28",revision=1408]]
---[[pod_format="raw",created="2025-02-02 19:06:08",modified="2026-08-30 01:20:00",revision=1250]]
+--[[pod_format="raw",created="2025-02-02 19:06:08",modified="2026-09-13 12:39:46",revision=1641]]
 --contra concept 
 --by turbochop
 --graphics work
@@ -10,6 +8,7 @@ include "effects.lua"
 include "map.lua"
 include "leveldata.lua"
 include "enemies.lua"
+include "mark_lead.lua"
 include "powerups.lua"
 include "collision.lua"
 include "ply_mod.lua"
@@ -23,10 +22,16 @@ include "weapons.lua"
 include "cards.lua"
 include "camera.lua"
 
+
+
 function _init()
 --stop btnp repeating
  poke(0x5f5c, 255)
+ 
+ --- Set video mode to 240 x 135
  vid(3)
+ 
+ --- Initialize game variables
  full_reset()
 
 end
@@ -40,7 +45,7 @@ global_timer+=1
 if global_timer>=30 then global_timer=0
 end
 
-
+hiscore= max(max(player_state[0].score,player_state[1].score),hiscore)
 if transfer then
   update_camera_transfer()
   end
@@ -77,9 +82,9 @@ if (scene=="gameover")  draw_gameover()  palt()
 if (scene=="continue")  draw_continue() palt()
 if (scene=="end")       draw_end()  palt()
 
---print(scrolling,cam_x,cam_y+50,8)
+--print(cam_moving,cam_x,cam_y+50,8)
 --print(scroll_dir,cam_x,cam_y+58,9)
---print(level_type,cam_x,cam_y+66,9)
+--print(clear,cam_x,cam_y+66,9)
 --print("weapon is "..player_state[0].weapon,cam_x,60,7)
 --print("rapid is "..tostring(player_state[0].rapid),cam_x,70,7)
 --print("copied is "..tostring(player_state[0].copied),cam_x,80,7)
@@ -112,6 +117,9 @@ init_map_resources()
     [0] = {
         copied=false,
         respawn=0,
+        score=0,
+        lifescore=0,
+        lifetier=1,
         lives = lifepool,
         weapon = "base",
         rapid=false,
@@ -120,6 +128,9 @@ init_map_resources()
     [1] = {
         copied=false,
         respawn=0,
+        score=0,
+        lifescore=0,
+        lifetier=1,
         lives = lifepool,
         weapon = "base",
         rapid=false,
@@ -129,7 +140,8 @@ init_map_resources()
  
 
      --game variables
-    
+     
+     hiscore=20000
      
      --Cheat code
      code={2,2,3,3,0,1,0,1,4,4,5}
@@ -139,7 +151,7 @@ init_map_resources()
     sequence=1
      correct=false
      prompt=1
-     
+    
      effect={}
       pup={}
       bullet={}
@@ -173,6 +185,7 @@ spawn_scan_x = -1
        scrolling="horizontal"
        scroll_dir = "left"
        scroll_front = 119
+       cam_moving=false
        map_end_x = 0
        map_end_y = 0
        auto_cam_y=nil
@@ -208,6 +221,7 @@ complete,clear=false,0
      start_d=0
        title=0
     gameover=false
+    choose=false
     g_otimer=0
     continue=2
  global_timer=0

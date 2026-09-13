@@ -1,4 +1,4 @@
---[[pod_format="raw",created="2026-02-06 05:21:36",modified="2026-09-03 18:29:41",revision=541]]
+--[[pod_format="raw",created="2026-02-06 05:21:36",modified="2026-09-13 07:01:40",revision=639]]
 prompt=1
 badgex=7
 --title, card, end and gameover
@@ -171,6 +171,13 @@ end
 --show level card
 
 function update_card()
+if start==0 then
+	add_card_contents(0,0)
+end
+
+for c in all (effect) do
+	c:update()
+end
 
 gameover=false
 start+=.01
@@ -191,18 +198,55 @@ end
 
 function draw_card()
 cls(0)
-local name={"JUNGLE","LOGISTICS", "  BASE", "WATERFALL", " TEST"}
-local xoffset = level==3 and 96 or 102
 camera(0,0)
+for c in all(effect) do
+	c:draw()
+end
+
+end
+
+function add_card_contents(x,y)
+
+add(effect,{
+
+     x=_x,
+     y=_y,
+-- timer=0,
+--    sp=,
+update=function(self)
+ 
+-- self.timer+=.2
+ if start>=2.4 then
+ 	del(effect,self)
+ end
+ end,
+ 
+ draw=function(self)
+ local name={"JUNGLE","LOGISTICS", "   BASE", "WATERFALL", " TEST"}
+local xoffset = level==3 and 96 or 107
+
+print("Hi Score:",cam_x+105, cam_y+10,6)
 print("Player 1",cam_x+20,cam_y+10,6)
 print("Rest "..player_state[0].lives,cam_x+20,cam_y+20,6)
+if global_timer%30<=15 then
+print(hiscore,cam_x+112, cam_y+20)
+print(player_state[0].score,cam_x+20,cam_y+35,6)
+end
 if multiplayer then
 	print("Player 2",cam_x+170,cam_y+10,6)
 print("Rest "..player_state[1].lives,cam_x+170,cam_y+20,6)
+if global_timer%30<=15 then
+print(player_state[1].score,cam_x+170,cam_y+35,6)
 end
-print ("AREA "..level,cam_x+103,cam_y+64,6)
+end
+print ("AREA "..level,cam_x+107,cam_y+64,6)
 print (tostring(name[level]),cam_x+xoffset,cam_y+74,6)
 --print(cam_x,cam_x,0,7)
+
+ end
+  
+})
+
 
 end
 
@@ -256,7 +300,20 @@ function draw_gameover()
 cls(0)
 camera(0,0)
 print ("GAME OVER",cam_x+100,cam_y+64,6)
+--print("Hi Score:",cam_x+95, cam_y+10,6)
+--print(pad("".. max(player_state[0].score, player_state[1].score),7),cam_x+98, cam_y+20,6)
+--print("Player 1",cam_x+20,cam_y+10,6)
+--print("Rest "..player_state[0].lives,cam_x+20,cam_y+20,6)
+--print(pad(""..player_state[0].score,7),cam_x+20,cam_y+35,6)
+--if multiplayer then
+--	print("Player 2",cam_x+170,cam_y+10,6)
+--print("Rest "..player_state[1].lives,cam_x+170,cam_y+20,6)
+--print(pad(""..player_state[1].score,7),cam_x+170,cam_y+35,6)
+--end
 --print(cam_x,cam_x,0,7)
+if timer>=3 and continue==0 then
+	rectfill(0,0,255,255,0)
+	end
 
 end
 
@@ -274,24 +331,41 @@ sfx(264)
 end
 --select yes, go to card
 if btnp(5) and sel==71 then
+choose=true
+end
+if btnp(5) and sel==81 then
+choose=true
+ 
+
+end
+if choose then timer+=1
+end
+
+if choose and timer>=10 then
+if sel==71 then
 cam_x=0
 continue-=1
 
 lifepool=code_used and 30 or 3
 player_state[0].lives=lifepool
 player_state[1].lives=lifepool
+player_state[0].score=0
+player_state[1].score=0
+player_state[0].lifescore=0
+player_state[1].lifescore=0
+player_state[0].lifetier=1
+player_state[1].lifetier=1
 level_reset()
+
 scene="card"
 
 timer=0
+choose=false
 timer1=0
 --select no, go to title 
-elseif btnp(5) and sel==81 then
-  fullreset=true
-
-
+else fullreset=true
 end
-
+end
 end
 
 function draw_continue()
@@ -302,6 +376,19 @@ print ("Continue?",cam_x+100,cam_y+60,6)
 print ("Yes",cam_x+115,cam_y+71,6)
 print ("No" ,cam_x+115,cam_y+81,6)
 spr   (26,cam_x+105,cam_y+sel)
+print("Hi Score:",cam_x+105, cam_y+10,6)
+print(hiscore,cam_x+112, cam_y+20,6)
+print("Player 1",cam_x+20,cam_y+10,6)
+print("Rest "..player_state[0].lives,cam_x+20,cam_y+20,6)
+print(player_state[0].score,cam_x+20,cam_y+35,6)
+if multiplayer then
+	print("Player 2",cam_x+170,cam_y+10,6)
+print("Rest "..player_state[1].lives,cam_x+170,cam_y+20,6)
+print(player_state[1].score,cam_x+170,cam_y+35,6)
+end
+if choose then
+	rectfill(0,0,255,255,0)
+end
 --print(cam_x,0,0,7)
 end
 

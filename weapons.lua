@@ -1,4 +1,4 @@
---[[pod_format="raw",created="2026-02-06 05:18:49",modified="2026-08-29 23:37:35",revision=1036]]
+--[[pod_format="raw",created="2026-02-06 05:18:49",modified="2026-09-13 10:12:52",revision=1129]]
 --weapons
 local weaponsheet=4
 
@@ -31,9 +31,10 @@ local ply=_ply
    ply.max_refire=10
  
     if puptmr>=45 then
-   sfx(seffect,13-offset,0,2)
+    sfx(seffect,15-offset,3,5)
+   
    end
-   sfx(seffect,15-offset,3,5)
+   sfx(seffect,13-offset,0,2)
    ply.max_bullets=4
   
    add_new_bullet(ply) 
@@ -578,7 +579,8 @@ if self.target==nil then
 	self.life-=(level_type=="3d") and 1.5 or 1
 end
       if self.target then
-      self.speed+= (self.speed<=2) and .01 or 0
+      maxspeed=self.rapid and 5 or 2
+      self.speed+= (self.speed<=maxspeed) and .04 or 0
         if can_home_target(self.target) then
 
           self.target_x=
@@ -947,6 +949,8 @@ function add_new_fire_bullet(_x,_y,_dx,_dy,_ply,_super,_z,_dz)
         world_y=world_y,
         x = _x,
         y = _y,
+        flpx=(_dx or 0)<0,
+        flpy=false,
         z= _z or 0,
         dx = _dx or 0,
         dy = _dy or 0,
@@ -954,14 +958,47 @@ function add_new_fire_bullet(_x,_y,_dx,_dy,_ply,_super,_z,_dz)
         dworld_y=_ply.b_dworld_y or 0,
         is_fire = true,
         super = _super or false,
+        supersprite=42,
         released = false,
         owner = _ply,
         life = 100,
         blink=0,
         ready=0,
         random=0,
+        animtimer=1,
 
         update=function(self)
+       -- Small bullet faces its current travel direction.
+local going_left=self.dx<0
+self.flpx=going_left
+self.flpy=false
+
+-- Animate the large, released fireball.
+if self.super and self.released and self.life<60 then
+    self.animtimer+=2
+    if self.animtimer>8 then
+        self.animtimer=1
+    end
+
+    -- Four poses, each lasting two updates.
+    local frame=self.animtimer
+
+    if frame<=2 then
+        self.supersprite=42
+    elseif frame<=4 then
+        self.supersprite=56
+    elseif frame<=6 then
+        self.supersprite=42
+    else
+        self.supersprite=56
+    end
+
+    local animation_flip=frame>=5
+
+    -- ~= acts as XOR: direction reverses the animation's X flip.
+    self.flpx=going_left~=animation_flip
+    self.flpy=animation_flip
+end
         self.random=flr(rnd(20))
             local p = self.owner
              if p.jam then
@@ -1040,20 +1077,20 @@ else
 end
 
 self.life-=4
---                self.life -= 4
+
             end
             
             if self.super then self.blink=1 end
         end,
 
         draw=function(self)
-        local flipx=self.random>=10 and true or false
-        local flipy=self.random%2==1 and true or false
-        local sprite=self.ready%10==4 and 22 or 11
+          local flipx=self.random>=10 and true or false
+        local sprite=self.ready%10==4 and 32 or 40
+        
         if self.blink%3==1 then
         if self.life>=60 then
         if not self.released and self.ready~=0 then
-            sspr(weaponsheet,16,40,8,8,self.x,self.y-1,8,8,flipx)
+            sspr(weaponsheet,16,sprite,8,8,self.x,self.y-1,8,8,flipx)
             else
                 sspr(
         weaponsheet,
@@ -1071,7 +1108,7 @@ self.life-=4
             end
             else
             if self.super then
-            sspr(weaponsheet, 24,32,16,16,self.x-4,self.y-2,16,16,flipx,flipy)
+            sspr(weaponsheet, self.supersprite,32,16,16,self.x-4,self.y-2,16,16,self.flpx,self.flpy)
             else
              sspr(
         weaponsheet,
@@ -1089,7 +1126,7 @@ self.life-=4
             end
             end
             end
---            print(self.life,self.x,self.y,6)
+--            print(self.ready,self.x,self.y,6)
         end
     })
 end
@@ -1108,6 +1145,8 @@ add(bullet,{
  x=_x,
  y=_y,
  z=_z or 0,
+ flpx=rnd(1)>.5 and true or false,
+ flpy=rnd(1)>.5 and true or false,
  w=_super and 16 or 8,
  h=_super and 16 or 8,
  is_2nd_fire=true,
@@ -1123,7 +1162,8 @@ add(bullet,{
 
 
  update=function(self)
- 
+ self.flpx=rnd(1)>.5 and true or false
+ self.flpy=rnd(1)>.5 and true or false
  if  level_type=="3d" and perspective_3d then
  self.world_x+=self.dx
  self.world_y+=self.dworld_y
@@ -1154,7 +1194,7 @@ end
  end,
   draw=function(self)
 if self.blink<.5 then
-sspr(weaponsheet, self.sp,32,self.w,self.h,self.x-4,self.y,self.w,self.h)
+sspr(weaponsheet, self.sp,32,self.w,self.h,self.x-4,self.y,self.w,self.h, self.flpx,self.flpy)
 --  spr(self.sp,self.x,self.y)
   end
 

@@ -1,4 +1,4 @@
---[[pod_format="raw",created="2026-02-06 05:15:57",modified="2026-09-03 22:25:52",revision=734]]
+--[[pod_format="raw",created="2026-02-06 05:15:57",modified="2026-09-13 12:36:56",revision=826]]
 --explosions and effects
   function add_controller(_x,_y)
 
@@ -119,6 +119,10 @@ add(effect,{
 
  update=function(self)
 
+self.valid=false
+ if self.init_spawn then
+ 	self.valid=true
+ end
  if (level_type=="top down" or level_type=="3d") then
  	self.x=(cam_x+self.screenx+self.playeroffset)
  self.y=(cam_y+self.screeny)
@@ -132,7 +136,9 @@ if level_type=="side scrolling" then
  self.screeny=horizontal_spawn and 0 or 110
  local xoffset=(self.id==0) and 30 or 40
  self.id=(self.type=="player 1") and 0 or 1
+ if self.init_spawn or scrolling=="horizontal" then
 self.x=(cam_x+self.screenx)+xoffset+self.offset
+end
  self.y=(cam_y+self.screeny)+self.poley 
  
  self.poletimer+=1
@@ -159,18 +165,18 @@ end
 end 
 end
  self.id=(self.type=="player 1") and 0 or 1
-
+	local offsetx= (self.id==0) and 0 or 10
  if self.valid then
  if self.queued then
  if self.init_spawn then
  	if level_type=="top down" or level_type=="3d" then
  	local yoffset= (level_type=="3d") and 20 or 0
- --	local offsetx= (self.id==0) and 0 or 20
  	 create_player(self.x,self.y-yoffset,self.id)
 
 elseif level_type=="side scrolling" then
-  if scrolling=="horizontal" then
-  create_player(self.x,cam_y-5,self.id)
+local playeroffset= (self.id==1) and 20 or 0
+  if scrolling=="horizontal" and self.valid then
+  create_player(self.x+offsetx,(cam_y-playeroffset)-5,self.id)
  	elseif (scrolling=="vertical" or scrolling=="both") then
  
  	create_player(self.x,self.y-20,self.id)
@@ -183,30 +189,57 @@ elseif level_type=="side scrolling" then
  	end
  end
  
- if level_type=="side scrolling" and (scrolling=="vertical" or scrolling=="both") then
- for p in all (players) do
- 
- 	if p.player==self.id and p.landed then
-     if p.dropdown then self.x=p.x
-     else
- 	 self.x=(p.flp0==false) and p.x-16 or p.x+16 
- 	 self.y=p.y
- 	 end
- 	 if p.dead then self.x=p.x
- 	 end
- 	  self.y=p.y
- 	  self.player_last_x=self.x
- 	  self.player_last_y=self.y
- 	elseif not p.landed then
+if level_type=="side scrolling"
+and (scrolling=="vertical" or scrolling=="both") then
 
- 	
- 	self.x=self.player_last_x
- 	self.y=self.player_last_y
- 	
- 	 end
- end
- 
- end
+    for p in all(players) do
+        if p.player==self.id then
+
+            if p.landed and not p.dead then
+
+                -- Just landed:
+                -- establish a brand-new safe anchor.
+                if not self.was_landed then
+                    self.x=p.x
+                    self.y=p.y
+                end
+
+                -- Dropdown can force the anchor directly
+                -- onto the player if that's desired.
+               if p.dropdown then
+    self.x=p.x
+else
+    local dist=(p.x+4)-(self.x+4)
+
+    if abs(dist)>20 then
+        if dist>0 then
+            self.x=p.x-20
+        else
+            self.x=p.x+20
+        end
+    end
+end
+
+self.y=p.y
+
+                -- This is now our last known grounded/safe position.
+                self.player_last_x=self.x
+                self.player_last_y=self.y
+
+            else
+
+                -- Airborne:
+                -- absolutely no following.
+                self.x=self.player_last_x
+                self.y=self.player_last_y
+
+            end
+
+            self.was_landed=p.landed
+            break
+        end
+    end
+end
 
 
  
@@ -216,7 +249,7 @@ elseif level_type=="side scrolling" then
  draw=function(self)
  local col=self.id==0 and 12 or 8
 -- rectfill(self.x,self.y,self.x+self.w,self.y+self.h,col)
--- print(self.init_spawn,self.x,self.y,7)
+-- print(self.valid,self.x,cam_y,7)
  --[[
 -- local lifeoffset=self.id==1 and 190 or 0
 -- local owner=player_state[self.id]
@@ -264,10 +297,10 @@ add(effect,{
 
 
 
-if ((phase_complete or complete) and spawn==5) then
+if ((phase_complete or complete) and spawn==5) and not gameover then
 for e = 0,self.w/8-1 do
-	mset(self.x/8+e,self.y/8,5)
-	mset(self.x/8+e,self.y/8+1,5)
+	mset(self.x/8+e,self.y/8,0)
+	mset(self.x/8+e,self.y/8+1,0)
 add_new_exp_spawner(self.x+8*e,self.y+10,2,5,"instant") 
 add_new_exp_spawner(self.x+8*e,self.y,2,3,"instant") 
 end
@@ -275,7 +308,7 @@ end
 --add_new_exp_spawner(self.x+20,self.y+7,2,2,"instant") 
 --add_new_exp_spawner(self.x,self.y+7,2,2,"instant") 
 --add_new_exp_spawner(self.x,self.y+7,2,2,"instant") 
-if level==4 then
+if level==4  then
 	music(127)
 end
 del(effect,self)
@@ -331,11 +364,11 @@ if self.stage==1 then
 	mset(self.x/8,self.y/8,110)
 	mset(self.x/8,(self.y+8)/8,126)
 	else
-	mset(self.x/8,self.y/8,191)
-	mset(self.x/8,(self.y+8)/8,191)
+	mset(self.x/8,self.y/8,0)
+	mset(self.x/8,(self.y+8)/8,0)
 	end
-	mset((self.x+8)/8,self.y/8,191)
-	mset((self.x+8)/8,(self.y+8)/8,191)
+	mset((self.x+8)/8,self.y/8,0)
+	mset((self.x+8)/8,(self.y+8)/8,0)
 	mset((self.x+16)/8,self.y/8,109)
 	mset((self.x+16)/8,(self.y+8)/8,125)
 	--mset(self.x/8,(self.y+8)/8,126)
@@ -446,7 +479,7 @@ add(effect,{
  self.y+=self.dy*self.delta
  
  self.timer+=.01
- if self.timer<=.01 then
+ if self.timer<=.01 and puptmr>=20 then
  if self.type==1 then
  sfx(258,5,0,8)
  elseif self.type==2 then
@@ -573,9 +606,15 @@ max_x=_max_x,
  timer=0,
  debug=false,
 toggle=false,
-
+blocked=false,
 update=function(self)
+if enemies<3 then
+if not self.blocked then
 self.timer+=.05
+
+end
+else self.timer=.5
+end
 self.x=cam_x+_x
 self.y=_y*8
 
@@ -586,9 +625,23 @@ self.toggle= not self.toggle
 
 end
 
+if self.dir=="right" then
+	self.blocked=false
+
+	for p in all(players) do
+		if abs((p.x+4)-self.x)<50
+		and abs((p.y+4)-(self.y))<=8 then
+
+			self.blocked=true
+			break
+		end
+	end
+end
+
+
 if self.chance>5  
 and self.toggle==false 
-and enemies<3 then
+and enemies<3 and not self.blocked then
  self.toggle=true
 enemies+=1
 add_new_enmy_run(self.x,self.y,.7,self.dir) 
@@ -604,6 +657,11 @@ end,
 draw=function(self)
 if  self.debug then
 spr(63,self.x-20,self.y)
+if self.dir=="right" then
+	print(self.timer,self.x+20, self.y,7)
+--	print(abs((p.x+4) - self.x),self.x+20, self.y+8,7)
+	
+end
 end
 end
 })
@@ -622,9 +680,9 @@ if level==1 then
 if timer3==1 then
 
 
-mset(212,10,270)
-mset(212,11,270)
-mset(212,12,270)
+mset(212,10,141)
+mset(212,11,0)
+mset(212,12,191)
 
 end
 
@@ -634,7 +692,7 @@ add_new_exp_spawner(213*8+8,10*8+8,2,0)
 add_new_exp(213*8+8,11*8+8)
 add_new_exp(213*8+8,12*8+8)
 mset(213,10,149)
-mset(213,11,167)
+mset(213,11,0)
 mset(213,12,183)
 
 end
@@ -643,7 +701,7 @@ if timer3==3 then
 
 
 mset(214,10,149)
-mset(214,11,167)
+mset(214,11,0)
 mset(214,12,183)
 
 end
@@ -654,7 +712,7 @@ add_new_exp(215*8+8,10*8+8)
 add_new_exp(215*8+8,11*8+8)
 add_new_exp(215*8+8,12*8+8)
 mset(215,10,149)
-mset(215,11,167)
+mset(215,11,0)
 mset(215,12,183)
 
 end
@@ -663,7 +721,7 @@ if timer3==5 then
 
 
 mset(216,10,149)
-mset(216,11,167)
+mset(216,11,0)
 mset(216,12,183)
 
 end
@@ -674,7 +732,7 @@ add_new_exp(217*8+8,10*8+8)
 add_new_exp(217*8+8,11*8+8)
 add_new_exp(217*8+8,12*8+8)
 mset(217,10,149)
-mset(217,11,167)
+mset(217,11,0)
 mset(217,12,183)
 
 end
@@ -683,9 +741,9 @@ if level==5 then
 if timer3==1 then
 
 
-mset(77,9,270)
-mset(77,10,270)
-mset(77,11,270)
+mset(77,9,141)
+mset(77,10,0)
+mset(77,11,191)
 
 end
 
@@ -695,7 +753,7 @@ add_new_exp_spawner(78*8+8,10*8+8,2,0)
 add_new_exp(78*8+8,11*8+8)
 add_new_exp(78*8+8,12*8+8)
 mset(78,9,149)
-mset(78,10,167)
+mset(78,10,0)
 mset(78,11,183)
 
 end
@@ -704,7 +762,7 @@ if timer3==3 then
 
 
 mset(79,9,149)
-mset(79,10,167)
+mset(79,10,0)
 mset(79,11,183)
 
 end
@@ -715,7 +773,7 @@ add_new_exp(80*8+8,9*8+8)
 add_new_exp(80*8+8,10*8+8)
 add_new_exp(80*8+8,11*8+8)
 mset(80,9,149)
-mset(80,10,167)
+mset(80,10,0)
 mset(80,11,183)
 
 end
@@ -724,7 +782,7 @@ if timer3==5 then
 
 
 mset(81,9,149)
-mset(81,10,167)
+mset(81,10,0)
 mset(81,11,183)
 
 end
@@ -735,7 +793,7 @@ add_new_exp(82*8+8,9*8+8)
 add_new_exp(82*8+8,10*8+8)
 add_new_exp(82*8+8,11*8+8)
 mset(82,9,149)
-mset(82,10,167)
+mset(82,10,0)
 mset(82,11,183)
 end
 end

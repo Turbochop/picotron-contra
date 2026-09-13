@@ -1,9 +1,9 @@
---[[pod_format="raw",created="2026-02-19 10:55:12",modified="2026-08-29 12:55:46",revision=454]]
+--[[pod_format="raw",created="2026-02-19 10:55:12",modified="2026-09-08 11:09:05",revision=456]]
 --collision
 --map collision
 
 
-function collide_map(obj,mov,flag)
+function collide_map(obj,mov,flag,ignore_slopes)
  local x=obj.x
  local y=obj.y
  local w=obj.w
@@ -31,13 +31,65 @@ function collide_map(obj,mov,flag)
  x1=flr(x1/8) y1=flr(y1/8)
  x2=flr(x2/8) y2=flr(y2/8)
 
- return fget(mget(x1,y1),flag)
-     or fget(mget(x1,y2),flag)
-     or fget(mget(x2,y1),flag)
-     or fget(mget(x2,y2),flag)
+ local function matches(tx,ty)
+  local tile=mget(tx,ty)
+  return fget(tile,flag) and not (ignore_slopes and
+      (fget(tile,6) or fget(tile,7)))
+ end
+ return matches(x1,y1) or matches(x1,y2)
+     or matches(x2,y1) or matches(x2,y2)
 end
 
 --slope helper
+
+-- Living players use a single support point and continuous tile-edge heights.
+-- Keep the older helper below for pickups and enemy/death movement.
+function resolve_player_slope(ply,old_x,old_foot,was_grounded)
+    if ply.dy < 0 then return false end
+
+    local foot_y=ply.y+ply.h
+    local foot_x=ply.x+ply.w/2
+    local tx=flr(foot_x/8)
+    local travel=abs(ply.x-old_x)
+    local snap=was_grounded and travel+1 or 0
+    local first_row=flr((min(old_foot,foot_y)-snap)/8)-1
+    local last_row=flr((max(old_foot,foot_y)+snap)/8)
+    local best_surface=nil
+
+    for ty=first_row,last_row do
+        local tile=mget(tx,ty)
+        local sy=nil
+        if fget(tile,7) then
+            sy=ty*8+8-(foot_x-tx*8)
+        elseif fget(tile,6) then
+            sy=ty*8+(foot_x-tx*8)
+        end
+        if sy then
+            -- Catch a crossed surface, or follow nearby ground while walking.
+            -- Looking one row above also catches the low tip after crossing a seam.
+            local crossed=old_foot <= sy+travel and foot_y >= sy
+            local follow=was_grounded and abs(old_foot-sy) <= snap+0.001
+            if (crossed or follow) and
+               (best_surface==nil or sy < best_surface) then
+                best_surface=sy
+            end
+        end
+    end
+
+    if best_surface==nil then return false end
+    -- Landing ends the 6-pixel jump hitbox; restore standing height without
+    -- moving the feet into the slope on the following frame.
+    ply.h=8
+    ply.y=best_surface-ply.h
+    ply.dy=0
+    ply.on_slope=true
+    ply.can_jump=true
+    ply.falling=false
+    ply.landed=true
+    ply.jumping=false
+    ply.jump=1.7
+    return true
+end
 
 function get_slope_y_at(tx, ty, world_x)
     local tile = mget(tx, ty)

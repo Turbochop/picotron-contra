@@ -1,12 +1,37 @@
---[[pod_format="raw",created="2026-02-06 05:20:50",modified="2026-09-03 22:43:36",revision=1938]]
---[[pod_format="raw",created="2026-02-06 05:20:50",modified="2026-09-03 08:03:57",revision=1892]]
---[[pod_format="raw",created="2026-02-06 05:20:50",modified="2026-07-01 13:27:00",revision=1414]]
+--[[pod_format="raw",created="2026-02-06 05:20:50",modified="2026-09-13 12:08:58",revision=2013]]
 --game state
 puptmr=50
 pallette=12
 paltimer=0
 
+--Add player score and life bonus handler
 
+function add_score(_player,_points)
+	local player=_player.player
+	local state=player_state[player]
+	local tiers={10000,40000,50000,100000}
+
+	state.score+=_points
+	state.lifescore+=_points
+
+	while state.lifescore>=tiers[state.lifetier] do
+		local threshold=tiers[state.lifetier]
+
+		for p in all(players) do
+			if p.player==player then
+				puptmr=-20
+				local offset=p.player==0 and 0 or 8
+				sfx(268,7,offset,8)
+				p.lives+=1
+			end
+		end
+
+		state.lifescore-=threshold
+		state.lifetier=min(state.lifetier+1,#tiers)
+	end
+end
+
+--Main game loop
 
  function update_game()
 
@@ -19,6 +44,7 @@ paltimer=0
   spawn_players()
   
   end
+  
   if spawn==1 then
   	 if level==3 then
   	for p in all(players) do
@@ -26,10 +52,10 @@ paltimer=0
   	end
   end
   end
---  if not transfer then
+
   spawn+=1
---
---  end
+
+
  if spawn>=5 then 
  	spawn=5
 
@@ -178,11 +204,20 @@ then
 end
   for c in all(enemy) do
   
-   if hit (b.x+3,b.y+3,c.x+1,c.y+2,c.w-2,c.h-2)and b.life~=0 and c.is_cap then
-   c.owner=b.owner
+   if hit (b.x+3,b.y+3,c.x+1,c.y+2,c.w-2,c.h-2)and b.life>0 and c.is_cap 
+   and c.life>0
+   then
    c.life-=1
+   c.owner=b.owner
+
+   	add_score(b.owner,c.points)
+   
+  
+  
+   
   if not b.is_fire then 
   if not b.is_laser then
+  
    b.life-=b.life
    end
   end
@@ -192,9 +227,18 @@ end
   end
 
   for cn in all(enemy) do
-  if hit (b.x+3,b.y+3,cn.x-2,cn.y,cn.w,cn.h) and b.life~=0 and cn.is_cannon then
+  if hit (b.x+3,b.y+3,cn.x-2,cn.y,cn.w,cn.h) and b.life>0 and cn.is_cannon 
+  and cn.life>0
+  then
+ 
+   cn.life-=1	
+   	if cn.life<=0 then
+   	add_score(b.owner,cn.points)
+   	else
+   	add_score(b.owner,5)
+   end
    
-   cn.life-=1
+   
 
    b.life-=b.life
 
@@ -205,7 +249,7 @@ end
    		p.jam=true
    	end
    end
-   if cn.life>1 then
+   if cn.life>=1 then
     if puptmr==50 then
    sfx(258,4,8,2)
    sfx(258,5,10,6)
@@ -219,14 +263,15 @@ end
    end 
  
    for en in all(enemy) do
-   if en.life==1 then
-  if hit (b.x+3,b.y+3,en.x,en.y-8,en.w-2,en.h+10) and (b.life~=0 or (b.is_fire 
+   if en.life>0 then
+  if hit (b.x+3,b.y+3,en.x,en.y-8,en.w-2,en.h+10) and (b.life>0 or (b.is_fire 
   and b.released)) 
   and en.exposed --exposed is any enemy, that isn't a capsule or 
                 --a shutter, that can be shot only when not hidden, IE ducked behind cover
                 
   then
-   
+  
+   add_score(b.owner,en.points)
    en.life-=en.life
   
    if (b.is_fire and b.super) then
@@ -259,8 +304,11 @@ end
   for st in all(enemy) do
    
    if st.life>0 and st.sp==64
-   and  hit (b.x+3,b.y+3,st.x+1,st.y+2,st.w-1,st.h-5) and b.life~=0 and st.is_shutter then
+   and  hit (b.x+3,b.y+3,st.x+1,st.y+2,st.w-1,st.h-5) and b.life>0 and st.is_shutter 
+ 
+   then
    st.owner=b.owner
+   add_score(b.owner,50)
    st.life-=1
    if not b.is_laser then
    b.life-=b.life
@@ -270,11 +318,16 @@ end
  end
 
  for t in all(enemy) do
-  if hit (b.x+3,b.y+3,t.x+1,t.y+2,t.w-1,t.h-5) and b.life~=0 and t.is_turret and (t.opened and t.deployed) then
+  if hit (b.x+3,b.y+3,t.x+1,t.y+2,t.w-1,t.h-5) and b.life>0 and t.is_turret and (t.opened and t.deployed) 
+  and t.life>0
+  then
    
    t.life-=1
-
-    
+   if t.life<=0 then
+   	add_score(b.owner,t.points)
+   	else
+   	add_score(b.owner,5)
+   end
    b.life-=b.life
 
    if (b.is_fire and b.released==false) then
@@ -284,7 +337,8 @@ end
    		p.jam=true
    	end
    end
-   if t.life>1 then
+   if t.life>=1 then
+   
    if puptmr==50 then
    sfx(258,4,8,2)
    sfx(258,5,10,6)
@@ -300,9 +354,16 @@ end
   end
   
   for bs in all(enemy) do
-  if hit (b.x+3,b.y+3,bs.x+2,bs.y+2,bs.h-2,bs.w) and b.life~=0 and bs.is_boss then
-   if bs.life>=1 then
-   bs.life-=1
+  if hit (b.x+3,b.y+3,bs.x+2,bs.y+2,bs.h-2,bs.w) and b.life>0 and bs.is_boss then
+   
+    bs.life-=1
+   if bs.life>0 then
+  
+   
+   	add_score(b.owner,5)
+  
+   
+  
    end
 
    b.life-=b.life
@@ -314,7 +375,7 @@ end
    		p.jam=true
    	end
    end
-   if bs.life>1 then
+   if bs.life>=1 then
    if puptmr==50 then
    sfx(258,4,8,2)
    sfx(258,5,10,6)
@@ -338,7 +399,7 @@ end
    local bottom= 130
    
   pl:update()
-  resolve_slope(pl)
+  if pl.dead then resolve_slope(pl) end
 
  
      if pl.x<cam_x+back then
@@ -441,7 +502,7 @@ end
 end
 
 if not transfer then
-
+cam_moving=false
 if scrolling=="both" then
     update_camera_horizontal()
     update_camera_vertical()
@@ -544,6 +605,7 @@ function get_split_focus_x()
 
     return trail.x * (1 - bias) + lead.x * bias
 end
+
 
 
 

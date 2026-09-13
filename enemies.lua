@@ -1,4 +1,4 @@
---[[pod_format="raw",created="2026-02-06 05:16:53",modified="2026-09-03 22:17:34",revision=1057]]
+--[[pod_format="raw",created="2026-02-06 05:16:53",modified="2026-09-13 10:40:54",revision=1249]]
 local enemysheet=3
 
 function add_new_ebullet(_x,_y,_dx,_dy,_z,_dz)
@@ -142,7 +142,8 @@ add(enemy,{
  {-.3,  -.6, true,  true }
 },
  target=0,
- life=30,
+ life=15,
+ points=300,
  sp=72,
  timer=0,
  timer2=0,
@@ -308,7 +309,7 @@ end,
  
 --  print(self.target.." vs "..self.rotate,self.x-8,self.y-16,7)
 --  print(tostring(self.target==self.rotate),self.x-8,self.y+8,7)
---  print(self.timer,self.x-8,self.y-8,7)
+--  print(self.life,self.x-8,self.y-8,7)
 pal()
 palt(30,true)
  end
@@ -432,6 +433,7 @@ add(enemy,{
  s2=1,
  eflip=false,
  life=1,
+ points=100,
  jump=false,
  water=false,
  timer=1,
@@ -625,7 +627,7 @@ if not (p.prone and p.water) then
  end
  end,
   draw=function(self)
---palt(30,true)
+palt(30,true)
 --local enemysheet=3
 local offset = self.on_slope and 2 or 0
 	if not self.water then
@@ -648,213 +650,624 @@ local offset = self.on_slope and 2 or 0
 
 end
 
+
+
 --Marksman
 
-function add_new_enmy_mark(_x,_y,_flip)
+function add_new_enmy_mark(_x,_y,_flip,_bastard)
 	add(enemy,{
- x=_x*8,
- y=_y*8,
--- z=_z or 0,
-exposed=true, -- if false he cannot be shot. He can NOT!... 
+		x=_x*8,
+		y=_y*8,
+		-- z=_z or 0,
+      bastard=_bastard or false,
+		exposed=true, -- if false he cannot be shot. He can NOT!...
+		is_mark=true, -- Oh, hi Mark...
+		targetable=false,
 
- is_mark=true, -- Oh, hi Mark...
- targetable=false,
- w=8,
- h=16,
- dx=0,
- dy=0,
--- d=5,
-frame={64,72,80,88,96,56},
- s1=1,
- s2=1,
- eflip=_flip or false,
- life=1,
- idle=false,
- recoil=5,
- rate=1,
- timer=50,
- timer2=179,
- death=0,
+		w=8,
+		h=16,
+		dx=0,
+		dy=0,
+		-- d=5,
 
+		frame={64,72,80,88,96,56,104,112,120,128},
+		s1=1,
+		s2=1,
+		eflip=_flip or false,
 
- update=function(self)
- self.x+=self.dx
- self.y+=self.dy
- 
- if self.s1>2 then self.targetable=true end
- 
- if self.recoil~=5 then
- 	self.recoil+=1
- end
- 
- 	
- 	
- 	if (self.timer2>=60 and self.timer2<=140) and self.timer2%60==self.rate 
- 	then 
- 	
- 	self.recoil=0
- 	
- 	
- end
- 
---stand for a moment, then shoulder up the rifle
- 
- if self.idle and self.y+self.h>cam_y+10 then
- 	self.timer+=self.rate
- 	if self.timer>= 110 and self.timer%10==2 then
- 		self.s1+=1
- 	end
- 	if self.timer>=130 then
- 	 self.timer=0
- 		self.idle=false
- 	end
- end
- 
- -- Determine where to aim
- 
- if not self.idle then self.timer2+=self.rate
- 
-local target=nil
-local closest=250
+		life=1,
+		idle=false,
+		recoil=5,
+      points=0,
+		-- Stored bullet trajectory
+		shot_dx=_flip and -1 or 1,
+		shot_dy=0,
+		lead_strength=.7,
+      lead_horizon=45,
+      lead_speed=1,
 
-for p in all(players) do
+		rate=1,
+		timer=50,
+		timer2=179,
+		death=0,
 
-	-- only living players can be targeted
-	if not p.dead
-	and not p.gameover
-	and p.respawn>=10
-	and p.life~=0 then
+		update=function(self)
+		self.points=self.bastard and 175 or 100
+			self.x+=self.dx
+			self.y+=self.dy
 
-		local dist=abs((self.x+4)-(p.x+4))
+			if self.s1>2 then
+				self.targetable=true
+			end
 
-		if dist<closest then
-			closest=dist
-			target=p
-		end
-	end
+			-- Recover from recoil
+			if self.recoil~=5 then
+				self.recoil+=1
+			end
 
-	if target then
-		if self.timer2==180 then
-	
-			self.eflip=(target.x+4<self.x+4)
-		end
+			-- Fire twice during the aiming cycle
+			if (self.timer2>=60 and self.timer2<=140)
+			and self.timer2%60==self.rate then
+				self.recoil=0
+			end
 
-		if self.timer2<60 or self.recoil==0 then
-			self.eflip=(target.x+4<self.x+4)
+			local target=nil
+			local closest=250
 
-			if target.y+4<self.y then
-				self.s1=5
-			elseif target.y+4>self.y+self.h or (abs((target.x+4)-(self.x+4))<=18 and (target.y+4>self.y and target.prone)) then
-				self.s1=4
-			else
+			-- Find the horizontally closest living player
+			for p in all(players) do
+				if not p.dead
+				and not p.gameover
+				and p.respawn>=10
+				and p.life~=0 then
+
+					local dist=abs(
+						(self.x+4)-(p.x+4)
+					)
+
+					if dist<closest then
+						closest=dist
+						target=p
+					end
+				end
+			end
+
+			-- Stand for a moment, then shoulder the rifle
+			if self.idle
+			and self.y+self.h>cam_y+10 then
+				-- Wait just before the first raise frame until a target is ready.
+				if self.timer<112 and not target then
+					self.timer=min(111,self.timer+self.rate)
+				else
+					self.timer+=self.rate
+				end
+
+				if self.timer>=110
+				and self.timer%10==2 then
+					self.s1+=1
+				end
+
+				if self.timer>=130 then
+					self.timer=0
+					self.idle=false
+				end
+			end
+
+			-- Determine where to aim
+			if not self.idle then
+				-- Brief, individual hesitation before lowering the rifle.
+				if self.disengage_wait and self.disengage_wait>0 then
+					self.disengage_wait-=1
+				else
+					self.timer2+=self.rate
+				end
+
+				-- No target for either shot: skip to the rifle-lowering sequence.
+				if self.recoil==0 and not target then
+					self.recoil=5
+					self.timer2=140+self.rate
+				end
+
+				if target then
+					-- Face the player before returning to idle
+					if self.timer2==180 then
+						self.eflip=(
+							target.x+4<self.x+4
+						)
+					end
+
+					-- Track before the first shot and whenever firing
+					if self.timer2<60
+					or self.recoil==0 then
+						local xdist=
+							(target.x+4)-(self.x+4)
+--
+						local ydist=
+							(target.y+4)-(self.y+4)
+
+local lead_x,lead_y=mark_lead_point(
+	self.x+4,
+	self.y+4,
+	target,
+	self.lead_speed,
+	self.lead_strength,
+	self.lead_horizon
+)
+
+local aim_x
+local aim_y
+
+if self.bastard then
+	-- Predict where the player is going
+	aim_x,aim_y=mark_lead_point(
+		self.x+4,
+		self.y+4,
+		target,
+		self.lead_speed,
+		self.lead_strength,
+		self.lead_horizon
+	)
+else
+	-- Aim directly at the player's current position
+	aim_x=target.x+4
+	aim_y=target.y+4
+end
+
+local xdist=aim_x-(self.x+4)
+local ydist=aim_y-(self.y+4)
+local ax=abs(xdist)
+local ay=abs(ydist)
+local direction=xdist<0 and -1 or 1
+
+						local ax=abs(xdist)
+						local ay=abs(ydist)
+
+						local direction=
+							xdist<0 and -1 or 1
+
+						self.eflip=direction<0
+
+						-- Aim downward at nearby prone players
+						if target.prone
+						and ax<=18
+						and ydist>=0 then
+							ydist=max(
+								ydist,
+								max(1,ax*.5)
+							)
+
+							ay=abs(ydist)
+						end
+						-- Treat targets inside Mark's standing height as level
+               if not target.prone
+              and target.y+4>=self.y
+               and target.y+4<=self.y+self.h then
+	                ydist=0
+                  end
+
+						-- Aim above the Marksman
+						if ydist<0 then
+
+							if ay>ax*1.5 then
+								-- WAY UP
+								self.s1=10 
+								self.shot_dx=direction*.5
+								self.shot_dy=-1
+
+							elseif ay>ax*.75 then
+								-- UP
+								self.s1=9 
+								self.shot_dx=direction
+								self.shot_dy=-1
+
+							elseif ay>ax*.25 then
+								-- FORWARD UPTILT
+								self.s1=7 
+								self.shot_dx=direction
+								self.shot_dy=-.5
+
+							else
+								-- FORWARD
+								self.s1=3 
+								self.shot_dx=direction
+								self.shot_dy=0
+							end
+
+						-- Aim below the Marksman
+						elseif ydist>0 then
+
+							if ay>ax*1.5 then
+								-- WAY DOWN
+								self.s1=4 
+								self.shot_dx=direction*.5
+								self.shot_dy=1
+
+							elseif ay>ax*.75 then
+								-- DOWN
+								self.s1=5 
+								self.shot_dx=direction
+								self.shot_dy=1
+
+							elseif ay>ax*.25 then
+								-- FORWARD DOWNTILT
+								self.s1=5 
+								self.shot_dx=direction
+								self.shot_dy=.5
+
+							else
+								-- FORWARD
+								self.s1=3
+								self.shot_dx=direction
+								self.shot_dy=0
+							end
+
+						-- Player is directly level
+						else
+							-- FORWARD
+							self.s1=3
+							self.shot_dx=direction
+							self.shot_dy=0
+						end
+					end
+				end
+			end
+
+			-- Fire using the stored trajectory
+			if self.recoil==0 then
+				add_new_ebullet(
+					self.x,
+					self.y,
+					self.shot_dx,
+					self.shot_dy
+				)
+			end
+
+			-- Done firing: return to idle
+			if self.timer2==140+self.rate then
+				-- Roll once per cycle, including a cancelled shot (0-18 ticks).
+				if self.disengage_wait==nil then
+					self.disengage_wait=flr(rnd(19))
+				end
 				self.s1=3
 			end
+
+			if self.timer2>=160
+			and self.timer2%10==2 then
+				self.s1-=1
+			end
+
+			if self.timer2>=180 then
+				self.timer2=0
+				self.idle=true
+				self.disengage_wait=nil
+			end
+
+			-- Remove when outside the active area
+			if self.x>cam_x+240
+			or self.x<cam_x-10
+			or self.y>cam_y+126
+			or (g_otimer>=1.9 and gameover) then
+				del(enemy,self)
+			end
+
+			-- Kill player on touch
+			for p in all(players) do
+				if hit(
+					p.x+4,
+					p.y,
+					self.x,
+					self.y-6,
+					self.w,
+					self.h
+				)
+				and self.life==1
+				and p.respawn>=15
+				and p.health==1 then
+
+					p.flp0=self.x<p.x and true or false
+					p.health-=1
+				end
+			end
+
+			-- All players dead: stand down
+			if gameover then
+				self.disengage_wait=nil
+				self.s1=2
+				self.timer=0
+				self.timer2=0
+			end
+
+			-- Die
+			if self.life<=.5 then
+				self.disengage_wait=nil
+				self.timer=0
+				self.timer2=0
+				self.dx=self.eflip and -1 or 1
+				self.s1=5
+
+				self.death+=1
+
+				if self.death<=11 then
+					self.dy-=.2
+					self.dx=-self.dx
+				end
+			end
+
+			if self.death>12 then
+				add_new_exp_spawner(
+					self.x+4,
+					self.y-4,
+					1,
+					1.1,
+					"instant"
+				)
+
+--				enemies-=1
+				del(enemy,self)
+			end
+		end,
+
+		draw=function(self)
+			local recoil=
+				self.recoil<5 and 1 or 0
+if self.bastard then
+	pal(2,19)
+	pal(24,3)
+	
+	pal(8,27)
+--	pal(1,25)
+end
+			-- Body
+			palt(30,true)
+
+			sspr(
+				enemysheet,
+				self.frame[self.s1],
+				16,
+				8,
+				8,
+				self.x,
+				self.y+recoil,
+				8,
+				8,
+				self.eflip
+			)
+
+			-- Legs
+			sspr(
+				enemysheet,
+				self.life==1 and 48 or 56,
+				24,
+				8,
+				8,
+				self.x,
+				self.y+8,
+				8,
+				8,
+				self.eflip
+			)
+pal() 
+			-- print(self.s1,self.x,self.y-16,7)
 		end
-	end
+	})
 end
- 	
- 
- -- once aiming is done, then calculate the bullet deltas	
- 	
- if self.recoil==0 then
- local dx=self.eflip and -1 or 1
-   local dy=0
- 	if self.s1==5 then dy=-1
- 	elseif self.s1==4 then dy=1
- 	else dy=0
- 	end
- 	
- 	--fire
- 	
- 	add_new_ebullet(self.x,self.y,dx,dy)
- end
- 
- --done firing, return to idle
- 
- if self.timer2==140+self.rate then self.s1=3
- end
- if self.timer2>= 160 and self.timer2%10==2 then
- 		self.s1-=1
- 	end
- 	if self.timer2>=180 then
- 	 self.timer2=0
- 		self.idle=true
- 	end
- end
- 
-  if self.x>cam_x+240 
- or self.x<cam_x-10 
- or self.y>cam_y+126 
- or g_otimer>=1.9 and gameover then
- 
- del(enemy,self)
- 
- end
- 
---Kill player on touch
- 
- for p in all(players) do
- 
- if hit(p.x+4,p.y,self.x,self.y-6,self.w,self.h)
- and self.life==1
- and p.respawn>=15
- and p.health==1
- 
- 
- then
 
- p.flp0=self.x<p.x and true or false
- p.health-=1
- end
- end
- 
---All players dead? Stand down  
-  
-  if gameover then
- self.s1=2
- self.timer=0
- self.timer2=0
- end
+-- Hider
 
- 
- --die
- 
-  if self.life<=.5 then
- self.timer=0
- self.timer2=0
- self.dx=self.eflip and -1 or 1 
- self.s1=5
- 
-  self.death+=1 
- if self.death<=11 then
+function add_new_enmy_hider(_x,_y,_flip)
+    add(enemy,{
+        x=_x*8,
+        y=(_y*8)-4,
 
- self.dy-=.2
- self.dx=-self.dx
- end
+        exposed=false,
+        visible=false,
+        targetable=false,
+        emerge=true,
+
+        -- Remember one player for each emergence.
+        target=nil,
+
+        w=8,
+        h=16,
+        dx=0,
+        dy=0,
+
+        frame={16,24,16,24,16,24,32,40,48,56,64},
+
+        eflip=_flip or false,
+
+        life=1,
+        recoil=0,
+        points=75,
+
+        shot_dx=_flip and -1 or 1,
+        shot_dy=0,
+
+        s1=1,
+        timer=-60,
+        death=0,
+
+        update=function(self)
+            self.x+=self.dx
+            self.y+=self.dy
+
+            self.timer+=self.emerge and 1 or -1
+            self.recoil+=(self.recoil<5) and 1 or 0
+
+            self.visible=self.timer>0
+            self.targetable=self.visible
+
+            -- Emerge through the peeking animation.
+            if self.timer>0
+            and self.timer%10==5
+            and self.s1<7
+            and self.emerge then
+                self.s1+=1
+            end
+
+            -- Prepare to withdraw after the second shot.
+            if self.timer==80 and not self.emerge then
+                self.s1=8
+            end
+
+            -- Reverse the animation while retreating.
+            if self.timer<70
+            and self.timer%10==5
+            and self.s1>1
+            and not self.emerge then
+                self.exposed=false
+                self.s1-=1
+            end
+
+            -- Reverse the timer at either endpoint.
+            if self.timer>=160 or self.timer<=-60 then
+                self.emerge=not self.emerge
+            end
+
+            -- Active aiming and firing phase.
+            if self.timer>=70 then
+                self.exposed=true
+
+                -- Choose a target once per emergence.
+                -- Passing 70 during retreat does not change it.
+                if self.timer==70 and self.emerge then
+                    self.target=nil
+                    local closest=nil
+
+                    for p in all(players) do
+                        if p.health==1 and not p.dead then
+                            local dx=(p.x+4)-(self.x+4)
+                            local dy=(p.y+4)-self.y
+                            local distance=dx*dx+dy*dy
+
+                            if closest==nil
+                            or distance<closest then
+                                closest=distance
+                                self.target=p
+                            end
+                        end
+                    end
+                end
+
+                -- Fire at 130 going up and 130 coming down.
+                if self.timer>=110
+                and self.timer%40==10 then
+                    self.recoil=0
+                end
+
+                -- Follow only the selected player.
+                local p=self.target
+
+                if p and p.health==1 and not p.dead then
+                    self.eflip=(p.x+4)<(self.x+4)
+                    self.shot_dx=self.eflip and -1 or 1
+
+                    if self.recoil==0 then
+                        if abs((p.y+4)-self.y)<=8 then
+                            self.s1=9
+                            self.shot_dy=0
+                        elseif (p.y+4)<self.y then
+                            self.s1=11
+                            self.shot_dy=-1
+                        else
+                            self.s1=10
+                            self.shot_dy=1
+                        end
+
+                        add_new_ebullet(
+                            self.x,
+                            self.y,
+                            self.shot_dx,
+                            self.shot_dy
+                        )
+                    end
+                end
+            end
+
+            -- Remove when outside the active area.
+            if self.x>cam_x+240
+            or self.x<cam_x-10
+            or self.y>cam_y+126
+            or (g_otimer>=1.9 and gameover) then
+                del(enemy,self)
+                return
+            end
+
+            -- Death movement.
+            if self.life<=.5 then
+                self.disengage_wait=nil
+                self.timer=0
+
+                self.dx=self.eflip and -1 or 1
+                self.death+=1
+
+                if self.death<=11 then
+                    self.dy-=.2
+                    self.dx=-self.dx
+                end
+            end
+
+            -- Finish the death with an explosion.
+            if self.death>12 then
+                add_new_exp_spawner(
+                    self.x+4,
+                    self.y-4,
+                    1,
+                    1.1,
+                    "instant"
+                )
+
+                del(enemy,self)
+            end
+        end,
+
+        draw=function(self)
+            local recoil=self.recoil~=5 and 1 or 0
+
+            if self.visible and self.death==0 then
+                sspr(
+                    enemysheet,
+                    self.frame[self.s1],
+                    40,
+                    8,
+                    8,
+                    self.x,
+                    self.y+recoil,
+                    8,
+                    8,
+                    self.eflip
+                )
+            elseif self.death~=0 then
+                sspr(
+                    enemysheet,
+                    40,
+                    40,
+                    8,
+                    8,
+                    self.x,
+                    self.y,
+                    8,
+                    8,
+                    self.eflip
+                )
+
+                sspr(
+                    enemysheet,
+                    56,
+                    24,
+                    8,
+                    8,
+                    self.x,
+                    self.y+8,
+                    8,
+                    8,
+                    self.eflip
+                )
+            end
+        end
+    })
 end
- if self.death>12 then
- add_new_exp_spawner(self.x+4,self.y-4,1,1.1,"instant")
- enemies-=1
- del(enemy,self)
- 
- end
- 
- end,
- draw=function(self)
-local recoil= self.recoil<5 and 1 or 0
---body
-palt(30,true)
- sspr(enemysheet,self.frame[self.s1],16,8,8,self.x,self.y+recoil,8,8,self.eflip)
---legs 
- 
- sspr(enemysheet,self.life==1 and 48 or 56,24,8,8,self.x,self.y+8,8,8,self.eflip)
- 
---  print(self.s1,self.x,self.y-16,7)
- end
- 
-})
 
-end
 
 function add_boss(_x,_y,_z)
 
@@ -870,7 +1283,8 @@ add(enemy,{
      d=10,
      is_boss=true,
      targetable=true,
-  life=100,
+  life=50,
+  points=5000,
  timer=0,
 timer1=0,
 timer2=0,
@@ -924,6 +1338,12 @@ pallette=2,
  if  self.timer2==20 then 
  add_new_exp_spawner(self.x,self.y+7,2,2,"instant") 
 -- sfx(263,15)
+
+for p in all(players) do
+	if not p.gameover and not (p.dead and p.lives<=0) then
+		add_score(p,self.points)
+	end
+end
  del(enemy,self)
  music(127)
  complete=true
@@ -958,6 +1378,7 @@ add(enemy,{
  h=8,
  d=4,
  life=20,
+ points=150,
  other=false,
  timer=0,
  sp=129,
@@ -1014,6 +1435,7 @@ add(enemy,{
  h=8,
  d=4,
  life=20,
+ points=150,
  timer=2,
  timer2=0,
  sp=129,

@@ -1,4 +1,4 @@
---[[pod_format="raw",created="2026-04-11 17:24:57",modified="2026-09-03 20:26:37",revision=128]]
+--[[pod_format="raw",created="2026-04-11 17:24:57",modified="2026-09-13 12:16:42",revision=136]]
 --[[pod_format="raw",created="2026-04-11 17:24:57",modified="2026-09-03 09:58:08",revision=124]]
 -- Camera update
 
@@ -230,6 +230,7 @@ end
 end
 
 function update_camera_autoscroll()
+--cam_moving=true
     if auto_cam_y==nil then
         return
     end
@@ -258,6 +259,7 @@ if last_active_count_y >= 2 and active_count == 1 then
     local survivor = active[1]
     local survivor_screen_y = survivor.y - cam_y
     if scroll_up then
+  
         solo_front_y = min(base_front, survivor_screen_y)
     else
         solo_front_y = max(base_front, survivor_screen_y)
@@ -278,6 +280,7 @@ if active_count >= 2 then
     local desired_cam_y = focus_y - base_front
 
     if not halt and ((scroll_up and desired_cam_y < cam_y) or (not scroll_up and desired_cam_y > cam_y)) then
+        cam_moving=true
         cam_y = camera_respawn_lerp(lead,cam_y,desired_cam_y)
     end
 
@@ -290,6 +293,7 @@ elseif active_count == 1 then
     -- scroll when the player pushes into the front line
     if not halt and ((scroll_up and p.y < cam_y + solo_front_y) or (not scroll_up and p.y > cam_y + solo_front_y)) then
         local desired_cam_y = p.y-solo_front_y
+        cam_moving=true
         cam_y = camera_respawn_lerp(p,cam_y,desired_cam_y)
     end
 

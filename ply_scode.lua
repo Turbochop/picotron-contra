@@ -1,5 +1,4 @@
---[[pod_format="raw",created="2026-04-07 10:50:13",modified="2026-09-03 22:56:20",revision=373]]
-
+--[[pod_format="raw",created="2026-04-07 10:50:13",modified="2026-09-13 12:18:41",revision=388]]
 --Player side-scrolling functions
 
 
@@ -622,7 +621,7 @@ end
       
       if ply.sp1>=3 and (ply.aim==4 or ply.aim==6 or ply.firing)
      -- and (level_type=="side scrolling" or level_type=="3d")
-      and ply.running and not ply.advancing then ply.y+=1
+      and ply.running and not ply.advancing and not ply.on_slope then ply.y+=1
       end 
     
     -- running off a ledge
@@ -642,7 +641,7 @@ end
     -- If your partner scrolled the screen up while you were standing
     -- that's a scrollkill
     
-    if ply.landed then ply.scrollkill=true
+    if cam_moving then ply.scrollkill=true
     end
     ply.health=0
     else ply.dy-=2
@@ -688,123 +687,70 @@ end
  
 function player_collide_side(_ply)
  local ply=_ply
--- --physics
-local was_on_slope = ply.on_slope
-ply.on_slope = false
-local snapped_to_semi = false
-local snapped_to_slope = false
+ local old_x=ply.x
+ local old_foot=ply.y+ply.h
+ local was_on_slope=ply.on_slope
+ local was_grounded=ply.landed and ply.dy>=0
+ ply.on_slope=false
 
-
-
--- --map collision check up and down
-   if  ply.dy>0 then
-      ply.falling=true
-      ply.landed=false
-     
-     end
-      
-     ply.dy=limit_speed(ply.dy,ply.max_dy)
-    if collide_map(ply,"down",4)  then
-      ply.water=true
-      ply.can_jump=true
-      ply.landed=true
-      ply.jumping=false
-      ply.falling=false
-      ply.dy=0
-     ply.y = flr((ply.y + ply.h) / 8) * 8 - ply.h
-      else ply.water=false
-    end  
-   
-    if collide_map(ply,"down",0) and not ply.on_slope and ply.dy>0 then
-     ply.can_jump=true
-   
-      ply.landed=true
-      ply.jumping=false
-      ply.falling=false
-      ply.jump=1.7
-      ply.dy=0
-      ply.y = flr((ply.y + ply.h) / 8) * 8 - ply.h
-    end
-    
-  if collide_map(ply,"down",3) and ply.can_jump and ply.dy>0 then
-   
-    if not ply.landed  then
-     ply.can_jump=true
-
-      ply.landed=true
-
-      ply.jumping=false
-      ply.falling=false
-      ply.jump=1.7
-      ply.dy=0
-      ply.y = flr((ply.y + ply.h) / 8) * 8 - ply.h 
-     end
-   end
---
--- --map collision check left and right 
- if ply.dx<0 then
--- 
+ ply.dy=limit_speed(ply.dy,ply.max_dy)
  ply.dx=limit_speed(ply.dx,ply.max_dx)
-  if collide_map(ply,"left",0) and not ply.on_slope then
---    
-     ply.dx=0
---    
---    
-  end 
- end
--- 
- if ply.dx>0  then
-  ply.dx=limit_speed(ply.dx,ply.max_dx) 
-  if collide_map(ply,"right",0) and ply.x+8<cam_x+220 and not ply.on_slope then
 
- ply.dx=0
-
-    end
-if (collide_map(ply,"right",5) and not fanfare) then
-
- ply.dx=0
-
-    end
+ -- Slope tiles do not have rectangular walls; ordinary walls still block.
+ if ply.dx<0 then
+  if collide_map(ply,"left",0,true) then
+   ply.dx=0
+  end
+ elseif ply.dx>0 then
+  if collide_map(ply,"right",0,true) then
+  
+   ply.dx=0
+  end
+  if collide_map(ply,"right",5) and not fanfare then
+   ply.dx=0
+  end
  end
 
-if not ply.advancing then
- ply.dy+=grav
-end
-
-
-
+ if not ply.advancing then ply.dy+=grav end
  ply.dx*=ply.fric
+ ply.x+=ply.dx
+ ply.y+=ply.dy
 
-ply.x += ply.dx
-ply.y += ply.dy
+ if ply.dy>0 then
+  ply.falling=true
+  ply.landed=false
+ end
 
-local snapped_to_slope = false
-----
-if not snapped_to_semi then
-    snapped_to_slope = resolve_slope(ply)
+ -- Resolve the actual slope before considering flat tile tops under the
+ -- edges of the body. Otherwise those tops create a plateau at every seam.
+ ply.water=false
+ if resolve_player_slope(ply,old_x,old_foot,was_grounded) then return end
+
+ -- Carry grounded contact onto a flat tile at the low end of a slope.
+ -- The probe may reach down only as far as this frame's walking step.
+ local floor_probe=ply
+ if was_on_slope and was_grounded and ply.dy>=0 then
+  floor_probe={x=ply.x,y=ply.y+abs(ply.x-old_x)+1,w=ply.w,h=ply.h}
+ end
+if ply.y+ply.h<cam_y+129 then
+ if collide_map(ply,"down",4) then
+  ply.water=true
+  ply.can_jump=true
+  ply.landed=true
+  ply.jumping=false
+  ply.falling=false
+  ply.dy=0
+  ply.y=flr((ply.y+ply.h)/8)*8-ply.h
+ elseif ply.dy>0 and
+     (collide_map(floor_probe,"down",0,true) or
+      (ply.can_jump and collide_map(floor_probe,"down",3,true))) then
+  ply.can_jump=true
+  ply.landed=true
+  ply.jumping=false
+  ply.falling=false
+  ply.jump=1.7
+  ply.dy=0
+  ply.y=flr((floor_probe.y+ply.h)/8)*8-ply.h
+ end
 end
-
-if not snapped_to_semi and not snapped_to_slope and was_on_slope and ply.dy >= 0 then
-    local old_y2 = ply.y
-   ply.y += 2
-    snapped_to_slope = resolve_slope(ply)
-   if not snapped_to_slope then
-        ply.y = old_y2
-   end
-end
-
-local snapped_to_slope = resolve_slope(ply)
-
--- tiny coyote-style slope glue:
--- if we were on a slope last frame and didn't quite catch this frame,
--- don't immediately declare the player airborne from a 1-pixel seam
-if not snapped_to_slope and was_on_slope and ply.dy >= 0 then
-   local old_y = ply.y
-    ply.y += 2
-    snapped_to_slope = resolve_slope(ply)
-    if not snapped_to_slope then
-       ply.y = old_y
-    end
-end  
-
 end

@@ -1,4 +1,4 @@
---[[pod_format="raw",created="2026-02-06 05:18:16",modified="2026-09-03 22:46:08",revision=181]]
+--[[pod_format="raw",created="2026-02-06 05:18:16",modified="2026-09-08 14:20:55",revision=191]]
 
 --capsules and powerups
 function add_new_cap_spawner_hor(_x,_y,_item,_dir)
@@ -112,6 +112,7 @@ add(enemy,{
      owner=_owner or 0,
      dy=-1,
    life=1,
+   points=50,
    item=_item,
   timer=0,
  update=function(self)
@@ -192,6 +193,7 @@ add(enemy,{
      owner=_owner or 0,
      dy=_dy,
    life=1,
+   points=50,
    item=_item,
   timer=0,
  update=function(self)
@@ -360,7 +362,7 @@ end
  end
 pal()
 palt(30,true)
--- print(self.sp,self.x,self.y,9)
+-- print(self.sp,self.x,self.y-16,7)
 -- rect(self.x+2,self.y-2,(self.x+self.w)-2,(self.y+self.h)+6,9)
  end
   
@@ -374,7 +376,8 @@ end
 function grant_item(item,_ply)
 local ply=_ply
 local prev_weapon=ply.weapon
-
+   	
+ 
 if item==27 then ply.weapon="mgun"
 elseif item==28 then ply.rapid=true
 elseif item==29 then
@@ -392,6 +395,6 @@ end
 if ply.weapon~=prev_weapon and not (prev_weapon=="spread" and ply.weapon=="spread 2") then 
 ply.rapid=false
 end
-
+add_score(ply,50)
 end
 

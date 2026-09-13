@@ -1,4 +1,4 @@
---[[pod_format="raw",created="2026-04-07 11:38:53",modified="2026-09-03 20:07:13",revision=262]]
+--[[pod_format="raw",created="2026-04-07 11:38:53",modified="2026-09-13 11:10:13",revision=272]]
 -- Common player control functions
 
 function ply_run_left(_ply)
@@ -214,9 +214,9 @@ end
      
       ply.dx=0
       ply.dy=0
---      ply.y = flr((ply.y + ply.h) / 8) * 8 - ply.h
+
     end
----[[
+if (ply.y+ply.h)<(cam_y+127) then
   if (collide_map(ply,"down",0) or ply.on_slope) and ply.dy>0 and level_type~="top down" then
      
       ply.dx=0
@@ -239,7 +239,7 @@ end
     if (collide_map(ply,"right",0) or (collide_map(ply,"right",5) and not fanfare)) then
       ply.dx=0
     end   
-   --]] 
+end
     --at rest
     
     if ply.dx==0 and ply.dy==0 then 
@@ -283,8 +283,18 @@ end
    if ply.scrollkill then
    	for p in all(players) do
    		if p.player~=ply.player then
+   		if p.landed then
    			ply.x=p.x
    			ply.y=p.y-8
+   			elseif not p.landed then
+   			for s in all(effect)do
+   				if s.id==p.player then
+   					ply.x=s.x
+   					ply.y=s.y
+   				end
+   			end
+   			end
+   	
    			ply.scrollkill=false
    		end
    	end

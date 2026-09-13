@@ -1,9 +1,10 @@
---[[pod_format="raw",created="2026-03-02 22:46:00",modified="2026-09-03 22:50:04",revision=2085]]
---[[pod_format="raw",created="2026-03-02 22:46:00",modified="2026-08-03 07:12:29",revision=1165]]
+--[[pod_format="raw",created="2026-03-02 22:46:00",modified="2026-09-13 12:33:08",revision=2113]]
+
 --Modular player object
 
 function save_player_state(p)
     local state = player_state[p.player]
+    
     -- if level_tpye~="3d" then
     state.lives = p.lives+1
    -- end
@@ -383,6 +384,10 @@ end
  	self.advframe=1
  end
  
+ if (fanfare and level==5) then
+ 	self.dx=0
+ end
+ 
  --instant player animation response to input
  if self.running and self.landed  then
  	if not self.start_run then
@@ -617,7 +622,7 @@ end
  end
  end
  end
---print(self.running,self.x+20,self.y,7)
+--print(self.rapid,self.x+20,self.y,7)
 --print(self.dx,self.x,self.y-8,7)
 --print(self.dy,self.x,self.y-16,7)
 --print(flr((self.x+4)/8),self.x,self.y-16,7)
@@ -626,7 +631,8 @@ if debug then
 local flashing= (global_timer%10>5) and 8 or 9
 	print("[Debug]",cam_x+20,cam_y+50,flashing)
 end
---print(player_state[self.player].rapid,self.x+20,self.y-8,8)
+--print(player_state[self.player].lifescore,self.x+20,self.y-8,7 )
+--print(player_state[self.player].score,self.x+20,self.y-16,7 )
  pal()
  palt(30,true)
 
@@ -678,7 +684,7 @@ end
   end
 
  end
---print(self.respawn,cam_x,50,7)
+--print(self.scrollkill,self.x,self.y,7)
 --]]
 end
  })

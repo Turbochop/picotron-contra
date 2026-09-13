@@ -1,4 +1,5 @@
---[[pod_format="raw",created="2026-02-24 20:03:51",modified="2026-09-03 16:29:41",revision=233]]
+--[[pod_format="raw",created="2026-02-24 20:03:51",modified="2026-09-13 08:16:49",revision=239]]
+--[[pod_format="raw",created="2026-02-24 20:03:51",modified="2026-09-12 04:48:05",revision=237]]
 --[[pod_format="raw",created="2026-02-24 20:03:51",modified="2026-09-03 08:40:19",revision=228]]
 visual_layer_1 = {}
 spawn_layer = {}
@@ -69,6 +70,16 @@ function map_helper(_x,_y,_width,_height)
 
  map_end_x=width*8
  map_end_y=height*8
+ -- Keep camera bounds unchanged, but load a hidden column past the right edge.
+ map_data_width=width
+ if scrolling=="horizontal" or scrolling=="both" then
+  local available_width=min(metadata_bmp:width()-x,source_layers[1].bmp:width()-x)
+  available_width=min(available_width,source_layers[3].bmp:width()-x)
+  available_width=min(available_width,play_layers[3].bmp:width())
+  if width<available_width then
+   map_data_width=width+1
+  end
+ end
  spawn_scan_x=-1
  spawn_scan_y=-1
 
@@ -101,7 +112,7 @@ end
 
 
 function copy_map_section(source_bmp,dest_bmp,x_start,y_start)
- for x=0,width-1 do
+ for x=0,map_data_width-1 do
   local column = {}
 
   memmap(source_bmp, 0x100000)
@@ -124,7 +135,7 @@ end
 function cache_map_layer(bmp,x_start,y_start,dest)
  memmap(bmp, 0x100000)
 
- for x=0,width-1 do
+ for x=0,map_data_width-1 do
   dest[x] = dest[x] or {}
   for y=0,height-1 do
    local tile=mget(x_start+x,y_start+y)
@@ -166,9 +177,9 @@ end
 
 function process_spawn_row(row, x_start, x_end)
  x_start = x_start or 0
- x_end = x_end or (width-1)
+ x_end = x_end or (map_data_width-1)
  x_start = max(0, x_start)
- x_end = min(width-1,x_end)
+ x_end = min(map_data_width-1,x_end)
 
  for x=x_start,x_end do
   local column = spawn_layer[x]
@@ -200,7 +211,11 @@ function spawn_enemy_from_cached_tile(map_x, map_y, sprite_id)
   [31]=function(px,py) add_new_shutter_pup(px,py,fire) end,
   [32]=function(px,py) add_new_enmy_mark(px,py-1) end,
   [33]=function(px,py) add_new_enmy_mark(px,py-1,true) end,
+  [34]=function(px,py) add_new_enmy_mark(px,py-1,false,true) end,
+  [35]=function(px,py) add_new_enmy_mark(px,py-1,true,true) end,
   [37]=function(px,py) add_new_shutter_pup(px,py,homing) end,
+  [41]=function(px,py) add_new_enmy_hider(px,py) end,
+  [42]=function(px,py) add_new_enmy_hider(px,py,true) end,
   [72]=function(px,py) add_new_turret(px,py) end,
  }
 
@@ -279,6 +294,12 @@ function update_spawn_stream()
  local visible_right_col=mid(0,flr((cam_x+239)/8),width-1)
  local visible_top_row=mid(0,flr(cam_y/8),height-1)
  local visible_bottom_row=mid(0,flr((cam_y+127)/8),height-1)
+
+ -- At the horizontal stop, also consume commands in the hidden column.
+ if (scrolling=="horizontal" or scrolling=="both") and
+    cam_x>=max(0,map_end_x-240) then
+  visible_right_col=map_data_width-1
+ end
 
  if scrolling == "vertical" then
   update_spawn_rows(visible_top_row, visible_bottom_row, visible_left_col, visible_right_col)
