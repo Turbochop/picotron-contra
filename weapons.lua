@@ -1,4 +1,4 @@
---[[pod_format="raw",created="2026-02-06 05:18:49",modified="2026-09-13 13:18:02",revision=1136]]
+--[[pod_format="raw",created="2026-02-06 05:18:49",modified="2026-09-14 06:03:10",revision=1163]]
 --weapons
 local weaponsheet=4
 
@@ -322,7 +322,7 @@ else
  self.y+=self.dy
 end
 
-self.life-=(level_type=="3d") and 1.5 or 1
+self.life-=(level_type=="3d" and not bfight) and 1.5 or 1
 
  end,
  draw=function(self)
@@ -369,7 +369,7 @@ else
  self.y+=self.dy
 end
 
-self.life-=(level_type=="3d") and 1.5 or 1
+self.life-=(level_type=="3d" and not bfight) and 1.5 or 1
 
  end,
  draw=function(self)
@@ -413,7 +413,7 @@ else
  self.y+=self.dy
 end
 
-self.life-=(level_type=="3d") and 1.5 or 1
+self.life-=(level_type=="3d" and not bfight) and 1.5 or 1
      if (self.life==30 or self.life==48) then self.sp+=8
       end
       
@@ -576,11 +576,11 @@ last_dist=nil,
 self.timer+=increment3d
       
 if self.target==nil then
-	self.life-=(level_type=="3d") and 1.5 or 1
+	self.life-=(level_type=="3d" and not bfight) and 1.5 or 1
 end
       if self.target then
-      maxspeed=self.rapid and 4 or 2
-      self.speed+= (self.speed<=maxspeed) and (self.rapid and .04 or .02) or 0
+      maxspeed=self.rapid and 3 or 2
+      self.speed+= (self.speed<=maxspeed) and (self.rapid and .03 or .02) or 0
         if can_home_target(self.target) then
 
           self.target_x=
@@ -1076,7 +1076,7 @@ else
  self.y+=self.dy
 end
 
-self.life-=4
+self.life-= (level_type=="3d" and not bfight) and 4 or 2.5
 
             end
             
@@ -1348,7 +1348,7 @@ function add_new_laser_part(
 
     end
 
-   self.life-=(level_type=="3d") and 3 or 2
+   self.life-=(level_type=="3d" and not bfight) and 3 or 2
 
    end
 
@@ -1408,3 +1408,5 @@ function clear_player_laser(_ply)
  end
 
 end
+
+

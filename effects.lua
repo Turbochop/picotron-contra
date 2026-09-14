@@ -1,4 +1,4 @@
---[[pod_format="raw",created="2026-02-06 05:15:57",modified="2026-09-13 12:36:56",revision=826]]
+--[[pod_format="raw",created="2026-02-06 05:15:57",modified="2026-09-14 02:36:21",revision=828]]
 --explosions and effects
   function add_controller(_x,_y)
 
@@ -555,6 +555,36 @@ update=function(self)
  draw=function(self)
 --palt(30,true)
  sspr(2,16,40,8,8,self.x-1,self.y-1,8,8)
+-- palt()
+ end
+  
+})
+
+end
+
+function add_new_muzzleflash(_x,_y)
+
+add(effect,{
+
+     x=_x-4,
+     y=_y,
+ timer=0,
+    
+update=function(self)
+ 
+ self.timer+=.2
+ 
+ if self.timer>1 then 
+ 
+ del (effect,self)
+ 
+ end
+ 
+ end,
+ 
+ draw=function(self)
+--palt(30,true)
+ sspr(2,16,48,8,8,self.x,self.y,8,8,rnd(1)<.5 and true or false, rnd(1)<.5 and true or false)
 -- palt()
  end
   

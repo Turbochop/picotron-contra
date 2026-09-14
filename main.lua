@@ -1,4 +1,4 @@
---[[pod_format="raw",created="2025-02-02 19:06:08",modified="2026-09-13 13:20:00",revision=1644]]
+--[[pod_format="raw",created="2025-02-02 19:06:08",modified="2026-09-14 08:34:18",revision=1728]]
 --contra concept 
 --by turbochop
 --graphics work
@@ -8,6 +8,7 @@ include "effects.lua"
 include "map.lua"
 include "leveldata.lua"
 include "enemies.lua"
+include "boss.lua"
 include "mark_lead.lua"
 include "powerups.lua"
 include "collision.lua"
@@ -82,7 +83,7 @@ if (scene=="gameover")  draw_gameover()  palt()
 if (scene=="continue")  draw_continue() palt()
 if (scene=="end")       draw_end()  palt()
 
---print(cam_moving,cam_x,cam_y+50,8)
+--print(#enemy,cam_x,cam_y+50,8)
 --print(scroll_dir,cam_x,cam_y+58,9)
 --print(clear,cam_x,cam_y+66,9)
 --print("weapon is "..player_state[0].weapon,cam_x,60,7)
@@ -235,7 +236,7 @@ end
 
 function level_reset()
    
-
+init_map_resources()
         players={}
          effect={}
             pup={}

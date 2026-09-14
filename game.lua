@@ -1,4 +1,4 @@
---[[pod_format="raw",created="2026-02-06 05:20:50",modified="2026-09-13 12:08:58",revision=2013]]
+--[[pod_format="raw",created="2026-02-06 05:20:50",modified="2026-09-14 06:53:07",revision=2035]]
 --game state
 puptmr=50
 pallette=12
@@ -176,6 +176,7 @@ end
 for b in all(bullet) do
 
   b:update()
+  
  if level_type=="3d" and perspective_3d then
 perspective_3d:project(b)
  end
@@ -318,7 +319,7 @@ end
  end
 
  for t in all(enemy) do
-  if hit (b.x+3,b.y+3,t.x+1,t.y+2,t.w-1,t.h-5) and b.life>0 and t.is_turret and (t.opened and t.deployed) 
+  if hit (b.x+3,b.y+3,t.x+1,t.y+2,t.w-1,t.h-5) and b.life>0 and ((t.is_turret and t.targetable) or (t.emplacement and t.targetable)) 
   and t.life>0
   then
    
@@ -354,8 +355,10 @@ end
   end
   
   for bs in all(enemy) do
-  if hit (b.x+3,b.y+3,bs.x+2,bs.y+2,bs.h-2,bs.w) and b.life>0 and bs.is_boss then
-   
+  if hit (b.x+3,b.y+3,bs.x+2,bs.y+2,bs.h-2,bs.w) and b.life>0 and bs.is_boss and bs.targetable then
+   if bs.is_eye then
+   	bs.timer1=0
+   end
     bs.life-=1
    if bs.life>0 then
   
@@ -423,7 +426,7 @@ if level==1 then
   if pl.x>=193*8 and not pl.dead and bfight==false then
  
  bfight=true
- add_boss(212,11)
+ add_boss_wallcore(212,11)
  add_new_cannon(211,8)
  end
  end
@@ -432,7 +435,7 @@ if level==1 then
   if pl.x>=58*8 and not pl.dead and bfight==false then
  
  bfight=true
- add_boss(77,9)
+ add_boss_wallcore(77,9)
  add_new_cannon(76,6)
  end
  end
@@ -455,7 +458,7 @@ if level_type=="3d" then
 enemycount=0
 
 for e in all(enemy) do
-	if not e.is_shutter then
+	if not e.is_shutter and not e.is_gun then
 		enemycount+=1
 	end
 end

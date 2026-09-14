@@ -1,4 +1,4 @@
---[[pod_format="raw",created="2026-02-06 05:21:09",modified="2026-09-04 00:10:49",revision=175]]
+--[[pod_format="raw",created="2026-02-06 05:21:09",modified="2026-09-14 07:08:17",revision=176]]
 -- wipe state
 -- begins the level 
 -- with some style
@@ -23,7 +23,7 @@ end
 if level==4 then
 level_type="side scrolling"
 
-map_helper(481,52,30,16)
+map_helper(481,128,30,16)
 end
 
 if level==5 then

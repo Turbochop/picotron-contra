@@ -1,5 +1,20 @@
 # Changelog
 
+## 2026-09-14 — Base eye boss and weapon tuning
+
+Compared with `38f0110` (`Import homing missile rapid-fire patch`):
+
+- Imported the latest exported `contra.p64.png` and synchronized all 30 decoded project files, including the new `boss.lua` module, updated graphics, source map, and export metadata.
+- Added a Base eye boss to the fifth phase of Level 3, plus a Level 0 test arena. Four destructible nodes protect the eye; destroying them starts a 40-update reveal delay, after which the eye moves horizontally, reacts to hits, and launches destructible bubbles aimed at the nearest living player.
+- Added two boss turrets with opening and closing animations, three-shot downward volleys, and muzzle flashes. Nodes and turrets replace their map tiles with damaged scenery when destroyed. The eye awards eligible players 5,000 points after its death sequence.
+- Moved the existing wall-core boss, paired cannons, and cannon projectiles into `boss.lua`, renamed the wall-core constructor, and updated its stage triggers.
+- Extended projectile collisions to vulnerable boss emplacements and gated boss damage on targetability. Boss guns are excluded from the 3D phase-clear enemy count.
+- Reduced rapid homing-missile acceleration from `0.04` to `0.03` per update and its speed threshold from `4` to `3`; normal missiles retain `0.02` acceleration and a threshold of `2`.
+- Extended rifle, machine-gun, spread, untargeted homing, and laser projectile lifetimes during 3D boss fights. Released fire shots now lose `2.5` life per update in side-scrolling stages and boss fights, while ordinary 3D sections retain the previous decay of `4`.
+- Reloaded map resources on level resets. Level 3 now loads its corridor map in phase 1 and a separate boss arena in phase 5; phases 2–4 retain the corridor map. Updated the Level 4 wipe's map location and supporting graphics and source-map data.
+
+Validation: all 30 decoded files and the staged cartridge match the imported export byte for byte; Picotron Lua syntax checks passed. All 34 existing slope, marksman, and map-edge regressions passed with temporary fixture adaptations for `cam_y` and the relocated boss functions. Seven focused projectile tests and five boss lifecycle checks passed, covering weapon lifetimes, homing acceleration and target loss, node unlock timing, eye movement, turret volleys, bubbles, scoring, and phase enemy counting. Interactive Picotron gameplay was not tested.
+
 ## 2026-09-13 — Homing-missile rapid-fire patch
 
 Compared with `c7e1277` (`Import latest Contra cart with scoring and enemy variants`):
