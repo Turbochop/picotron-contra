@@ -1,4 +1,4 @@
---[[pod_format="raw",created="2026-02-06 05:21:36",modified="2026-09-13 07:01:40",revision=639]]
+--[[pod_format="raw",created="2026-02-06 05:21:36",modified="2026-09-26 20:15:20",revision=660]]
 prompt=1
 badgex=7
 --title, card, end and gameover
@@ -50,7 +50,9 @@ elseif timer>=.5 then pallette=5
      if ready  then start_d=prompt==1 and .1 or .05
      else start_d=0
      end
-     
+     if (start>=4 and prompt==2 and stat(466)==-1) then
+     	fade+=(global_timer%2==1) and 1 or 0
+     end
     if start>=5 and prompt==1  then
     ready=false
     timer=0
@@ -69,10 +71,10 @@ elseif timer>=.5 then pallette=5
    	badgex=7
    end
    end
-if start>=4.4 and prompt==2 and stat(466)~=-1 then
-start=4.4
+if start>=4.4 and prompt==2 and stat(466)~=-1 and fade~=4 then
+start=4
 end
-if start==5 then
+if start==5 and fade==4 then
 if badgex==93 then multiplayer=true
 end
 obj={}
@@ -163,8 +165,8 @@ spr(26,badgex+cam_x-190,99)
 
 end
 end
-if start>=4.5 and prompt==2 then rectfill(-100,0,255,255,0)
-end
+--if start>=4.5 and prompt==2 then rectfill(-100,0,255,255,0)
+--end
  end
 end
 
@@ -206,7 +208,7 @@ end
 end
 
 function add_card_contents(x,y)
-
+fade=4
 add(effect,{
 
      x=_x,
@@ -214,9 +216,15 @@ add(effect,{
 -- timer=0,
 --    sp=,
 update=function(self)
- 
+if start<.5 then
+ fade-=(global_timer%6==1) and 1 or 0
+end
+if start>=2.3 then
+fade+=(global_timer%2==1) and 1 or 0
+end
 -- self.timer+=.2
  if start>=2.4 then
+ fade=0
  	del(effect,self)
  end
  end,

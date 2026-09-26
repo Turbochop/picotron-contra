@@ -1,4 +1,4 @@
---[[pod_format="raw",created="2026-02-06 05:20:50",modified="2026-09-14 06:53:07",revision=2035]]
+--[[pod_format="raw",created="2026-02-06 05:20:50",modified="2026-09-26 21:33:59",revision=2069]]
 --game state
 puptmr=50
 pallette=12
@@ -118,7 +118,9 @@ end
   	clear=500
   end
   end
-  
+if clear>= 510 and level==5 then
+ fade+=(global_timer%15==1) and 1 or 0 	
+end
 
   if clear>=600  then 
   level_reset()
@@ -146,7 +148,9 @@ end
  
   
   for e in all(enemy) do
+  if fade<=2 then
    e:update()
+   end
    if complete then e.life=0
    end
    if e.is_runner then
@@ -355,7 +359,7 @@ end
   end
   
   for bs in all(enemy) do
-  if hit (b.x+3,b.y+3,bs.x+2,bs.y+2,bs.h-2,bs.w) and b.life>0 and bs.is_boss and bs.targetable then
+  if hit (b.x+3,b.y+3,bs.x+2,bs.y+2,bs.w-2,bs.h) and b.life>0 and bs.is_boss and bs.targetable then
    if bs.is_eye then
    	bs.timer1=0
    end
@@ -645,6 +649,7 @@ function draw_game()
 
 
 -- draw cached layer 3 first if it's a background
+
 map()
 -- draw active layer 1 gameplay map
 --if level~=0 then
@@ -660,9 +665,9 @@ end
 palt()
 palt(30,true)
  for eb in all(ebullet) do
- 
+ begin_unfaded()
   eb:draw()
-  
+  end_unfaded()
  end
 
  if level_type == "top down" then
@@ -703,7 +708,9 @@ palt(30,true)
   for e in all(effect) do
   pal()
   palt(30,true)
+  begin_unfaded()
    e:draw()
+   end_unfaded()
   end
 
  else
@@ -713,35 +720,52 @@ palt(30,true)
 
   palt(30,true)
   for b in all(bullet) do
+  begin_unfaded()
    b:draw()
+   end_unfaded()
   end
 
   for p in all(pup) do
+  
   pal()
   palt(30,true)
+  begin_unfaded()
    p:draw()
+   end_unfaded()
   end
 
   for e in all(effect) do
+  begin_unfaded()
    e:draw()
+   end_unfaded()
   end
   
- 
+
 
   for pl in all(players) do
    
 
 --]]
-
+begin_unfaded()
    pl:draw()
-   
+  end_unfaded() 
   end
+  
  end
 
 
  rectfill(0+cam_x,128+cam_y,240+cam_x,136+cam_y,0)
 
- if ((g_otimer>1.9 and gameover) or (clear>=585)) then
+
+ if level_type=="3d" and not bfight then
+ local border= {240,241,242,243}
+ palt(0,false)
+ begin_unfaded()
+ 	spr(border[bezel])
+ 	end_unfaded()
+ 	palt()
+ end
+  if ((g_otimer>1.9 and gameover) or (clear>=585)) then
   rectfill(0+cam_x,0+cam_y,240+cam_x,136+cam_y,0)
  end
 -- rect(x1r,x2r,y1r,y2r,7)

@@ -1,4 +1,4 @@
---[[pod_format="raw",created="2026-08-15 04:05:02",modified="2026-08-30 01:02:03",revision=271]]
+--[[pod_format="raw",created="2026-08-15 04:05:02",modified="2026-09-26 18:35:47",revision=286]]
 -- 3d mode player update code
 perspective_3d=nil
 
@@ -135,6 +135,13 @@ end
 function threedee_mode_update()
 --if #enemy==0 then phase_complete = true
 --end
+threedee_fade_timer+= (threedee_fade_timer<90) and 1 or 0
+if threedee_fade_timer==10 then
+	fade-=1
+end
+if threedee_fade_timer>70 then
+	fade-=(threedee_fade_timer%6==1) and 1 or 0
+end
 
  if clear >=200 and fanfare==false then
   music(1)
@@ -290,7 +297,8 @@ p.advancing=true
 	
 
 		if screen>=4 then
-
+      fade=4
+      threedee_fade_timer=0
 			--save / launch all players
 			for p in all(players) do
             p.bullets=0

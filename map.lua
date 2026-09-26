@@ -1,4 +1,4 @@
---[[pod_format="raw",created="2026-02-24 20:03:51",modified="2026-09-13 08:16:49",revision=239]]
+--[[pod_format="raw",created="2026-02-24 20:03:51",modified="2026-09-26 17:41:52",revision=243]]
 --[[pod_format="raw",created="2026-02-24 20:03:51",modified="2026-09-12 04:48:05",revision=237]]
 --[[pod_format="raw",created="2026-02-24 20:03:51",modified="2026-09-03 08:40:19",revision=228]]
 visual_layer_1 = {}
@@ -216,6 +216,7 @@ function spawn_enemy_from_cached_tile(map_x, map_y, sprite_id)
   [37]=function(px,py) add_new_shutter_pup(px,py,homing) end,
   [41]=function(px,py) add_new_enmy_hider(px,py) end,
   [42]=function(px,py) add_new_enmy_hider(px,py,true) end,
+  [43]=function(px,py) add_new_ground_turret(px,py-2) end,
   [72]=function(px,py) add_new_turret(px,py) end,
  }
 
@@ -249,6 +250,7 @@ end
 
 
 function draw_cached_layer(layer_table)
+  apply_fade()
  local start_tx=max(0,flr(cam_x/8))
  local end_tx=min(width-1,start_tx+30)
 
@@ -266,6 +268,7 @@ function draw_cached_layer(layer_table)
    end
   end
  end
+
 end
 
 

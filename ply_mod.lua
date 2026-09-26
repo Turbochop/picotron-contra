@@ -1,4 +1,4 @@
---[[pod_format="raw",created="2026-03-02 22:46:00",modified="2026-09-14 07:04:03",revision=2115]]
+--[[pod_format="raw",created="2026-03-02 22:46:00",modified="2026-09-26 21:42:54",revision=2121]]
 
 --Modular player object
 
@@ -422,22 +422,23 @@ draw=function(self)
  palt(30,true)
 
  local lifeoffset=self.player==1 and 190 or 0
-
+ 
+ local p2offset= (level~=5) and 32 or 0
  if self.player==1 then
-  palt(0,false)
-  pal(15,31)
-  pal(7,6)
-  pal(6,7)
-  pal(8,16)
-  pal(20,21)
-  pal(13,21)
-  pal(25,5)
-  pal(12,24)
-  pal(9,22)
-  pal(16,2)
-  pal(10,5)
-  pal(28,8)
- end
+    palt(0,false)
+    pal(15,31+p2offset)
+    pal(7,6+p2offset)
+    pal(6,7+p2offset)
+    pal(8,16+p2offset)
+    pal(20,21+p2offset)
+    pal(13,21+p2offset)
+    pal(25,5+p2offset)
+    pal(12,24+p2offset)
+    pal(9,22+p2offset)
+    pal(16,2+p2offset)
+    pal(10,5+p2offset)
+    pal(28,8+p2offset)
+end
 
  local xframe={16,24,32,40,48,56,64,72}
  local player_sheet=1
@@ -635,7 +636,7 @@ end
 --print(player_state[self.player].score,self.x+20,self.y-16,7 )
  pal()
  palt(30,true)
-
+begin_unfaded()
  if self.gameover then
 
   print(
@@ -686,6 +687,7 @@ end
  end
 --print(self.scrollkill,self.x,self.y,7)
 --]]
+end_unfaded()
 end
  })
 

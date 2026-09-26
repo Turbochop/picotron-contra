@@ -1,5 +1,20 @@
 # Changelog
 
+## 2026-09-26 — Staged fades and ground turrets
+
+Compared with `09cbcb0` (`Import Base eye boss and weapon tuning`):
+
+- Imported the latest exported `contra.p64.png` and synchronized all 30 decoded project files, including updated graphics, source-map, sound, and export metadata.
+- Added a five-step screen fade driven by the 32-by-5 lookup image in sprite 9. The final display-palette pass fades colours 0–31 while colours 32–63 provide unfaded equivalents for selected drawing calls.
+- Added title-selection fade-out, stage-card fade-in and fade-out, and a slower final-stage fade. Level 3 begins dark, and each new 3D phase reveals the room in stages at updates 10, 73, 79, and 85.
+- Intentionally paused enemy behavior while `fade>2` so enemies are revealed before they begin attacking.
+- Added fade exclusions for selected players, projectiles, pickups, effects, HUD elements, and the 3D corridor border. Exclusions are disabled on level 5, including player two's colour swaps. Added the corridor border to gameplay and the initial Level 3 wipe, with full-screen blackouts drawn afterward.
+- Added deployable ground turrets with blinking indicators, horizontal or upward shots, 10 health, and a 200-point reward. Spawn marker 43 places a turret two tiles above its map marker; surviving turrets retract during game over.
+- Changed Base eye rendering to use its current width and height, advanced boss-turret initial timing from -30 to 40, and replaced the default boss-bubble explosion sound with two short sound segments.
+- Corrected the boss projectile-hit rectangle to use width and height in the proper order.
+
+Validation: all 30 decoded files and the cartridge were checked byte for byte against the supplied export; Picotron Lua syntax checks passed. All 29 existing slope and marksman regression tests passed against the imported source with temporary fixture adaptations for `cam_y` and the relocated boss functions. This import was not run interactively in Picotron.
+
 ## 2026-09-14 — Base eye boss and weapon tuning
 
 Compared with `38f0110` (`Import homing missile rapid-fire patch`):

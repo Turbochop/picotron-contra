@@ -1,4 +1,4 @@
---[[pod_format="raw",created="2025-02-02 19:06:08",modified="2026-09-14 08:34:18",revision=1728]]
+--[[pod_format="raw",created="2025-02-02 19:06:08",modified="2026-09-26 21:26:54",revision=1812]]
 --contra concept 
 --by turbochop
 --graphics work
@@ -37,6 +37,50 @@ function _init()
 
 end
 
+--screen fading functions
+
+function load_fade_lut()
+    local sprite=get_spr(fade_lut_sprite)
+    fade_lut={}
+
+    for y=0,4 do
+        fade_lut[y]={}
+        for x=0,31 do
+            fade_lut[y][x]=sprite:get(x,y)
+        end
+    end
+end
+
+function apply_fade()
+    if fade_lut==nil then return end
+
+    local row=mid(0,flr(fade),4)
+
+    for c=0,31 do
+        pal(c,fade_lut[row][c],1)
+        pal(c+32,c,1) -- makes unfaded objects show normal colours
+    end
+end
+
+-- these two functions can be applied to any object that should be excluded from fading
+-- Begin should be placed before draw commands within a draw function
+-- end should be placed after the commands you want excluded
+
+
+function begin_unfaded()
+if level~=5 then
+    for c=1,31 do
+        pal(c,c+32,0)
+    end
+    end
+    palt(30,true)
+end
+
+function end_unfaded()
+    pal(0)
+    palt(30,true)
+end
+
 
 slow=0
 function _update()
@@ -45,7 +89,10 @@ grav=debug and 0 or .7
 global_timer+=1
 if global_timer>=30 then global_timer=0
 end
-
+--if keyp("i") then fade+=1 end
+--if keyp("o") then fade-=1 end
+if fade>=4 then fade=4 end
+if fade<=0 then fade=0 end
 hiscore= max(max(player_state[0].score,player_state[1].score),hiscore)
 if transfer then
   update_camera_transfer()
@@ -75,16 +122,16 @@ function _draw()
 
 palt(30,true)
 local lifetext=(player_state[0].lives~=1) and " lives" or " life" 
-if (scene=="title")   draw_title() palt()
+if (scene=="title")   draw_title()  palt()
 if (scene=="game")    draw_game() -- palt()
 if (scene=="wipe")    draw_wipe()  palt()
 if (scene=="card")     draw_card() palt()
 if (scene=="gameover")  draw_gameover()  palt()
 if (scene=="continue")  draw_continue() palt()
 if (scene=="end")       draw_end()  palt()
-
---print(#enemy,cam_x,cam_y+50,8)
---print(scroll_dir,cam_x,cam_y+58,9)
+apply_fade()
+--print(stat(466),cam_x,cam_y+50,8)
+--print(fade,cam_x,cam_y+58,9)
 --print(clear,cam_x,cam_y+66,9)
 --print("weapon is "..player_state[0].weapon,cam_x,60,7)
 --print("rapid is "..tostring(player_state[0].rapid),cam_x,70,7)
@@ -99,6 +146,8 @@ function init_map_resources()
     source_layers=fetch("map/1.map")
     play_layers=fetch("map/0.map")
 end
+
+
 
 function full_reset()
 debug=false
@@ -182,6 +231,9 @@ spawn_scan_x = -1
        chunk=1
        width=30
        height=16
+       fade=0
+       fade_lut_sprite = 9
+       fade_lut = {}
        level_type="side scrolling"
        scrolling="horizontal"
        scroll_dir = "left"
@@ -193,6 +245,7 @@ spawn_scan_x = -1
        -- 3d mode level phases
        
        phase_complete=false
+       bezel=1
        phase=1
        screen=1
        enemycount=0
@@ -201,7 +254,7 @@ spawn_scan_x = -1
        bothready=false
        delay_timer=0
        delay_timer_max=60
-       
+       threedee_fade_timer=0
        
        song= {3,0,14,28,36}  
 
@@ -228,11 +281,13 @@ complete,clear=false,0
  global_timer=0
          sel=71
       toggle=false   
+      load_fade_lut()
    fullreset=false
    
     ------test------
 -- x1r=0  y1r=0  x2r=0  y2r=0
 end
+
 
 function level_reset()
    
@@ -257,6 +312,7 @@ visual_layer_1 = {}
          timer1=0
           chunk=1
           auto_cam_y=nil
+          fade=0
        -- 3d mode level resets
        
        phase_complete=false
@@ -268,6 +324,8 @@ visual_layer_1 = {}
        bothready=false
        delay_timer=0
        delay_timer_max=60
+       threedee_fade_timer=0
+      
       
       timer2=0
       timer3=0

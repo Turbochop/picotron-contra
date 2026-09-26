@@ -1,4 +1,4 @@
---[[pod_format="raw",created="2026-06-25 20:07:31",modified="2026-09-14 07:54:15",revision=338]]
+--[[pod_format="raw",created="2026-06-25 20:07:31",modified="2026-09-26 19:29:42",revision=344]]
 --[[pod_format="raw",created="2026-06-25 20:07:31",modified="2026-09-03 09:43:59",revision=261]]
 function spawn_players()
 local spawnx= (level_type=="side scrolling") and cam_x or cam_x+50 
@@ -21,6 +21,7 @@ local level=_level
 if level==0 then
 map_helper(481,111, width, height)
 add_boss_base_eye(14,2)	
+--add_new_ground_turret(20,11)
 end
 
 
@@ -77,6 +78,7 @@ if chunk==1 then
   level_type="3d" 
  scrolling="vertical"
  scroll_dir = "up"
+fade=4
  if phase==1 then
  map_helper(481, 34 , 30, 16)
    add_new_shutter_pup(17,cam_y+5,mgun)

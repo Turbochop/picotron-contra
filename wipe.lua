@@ -1,4 +1,4 @@
---[[pod_format="raw",created="2026-02-06 05:21:09",modified="2026-09-14 07:08:17",revision=176]]
+--[[pod_format="raw",created="2026-02-06 05:21:09",modified="2026-09-26 18:49:41",revision=188]]
 -- wipe state
 -- begins the level 
 -- with some style
@@ -49,14 +49,23 @@ function draw_wipe()
  map()
  draw_cached_layer(visual_layer_1)
 
-	if level==3 then
-	palt(30,true)
-palt(0,false)
-	spr(248)
-	end
+--	if level==3 then
+--	palt(30,true)
+--palt(0,false)
+--	spr(248)
+--	end
+  if level==3  then
+  fade=4
+  begin_unfaded()
+ local border= {240,241,242,243}
+ palt(0,false)
+ palt(30,true)
+ 	spr(border[bezel])
  
+ end
 
  if multiplayer then
+ 
   for l=1,player_state[1].lives do 
    spr(39,(cam_x+190)+l*8,cam_y+8)
    if l==4 then break end
@@ -66,8 +75,9 @@ palt(0,false)
  for l=1, player_state[0].lives do 
   spr(39,cam_x+l*8,cam_y+8)
   if l==4 then break end
+   
  end
-
+end_unfaded()
 if level_type=="side scrolling" then
  rectfill(timer,0,250,200,0)
  elseif level_type=="top down" or scroll_dir=="up" then

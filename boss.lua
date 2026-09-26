@@ -1,4 +1,4 @@
---[[pod_format="raw",created="2026-09-13 23:53:00",modified="2026-09-14 07:27:23",revision=313]]
+--[[pod_format="raw",created="2026-09-13 23:53:00",modified="2026-09-26 19:12:13",revision=325]]
  local bosssheet=5
  local enemysheet=3
 
@@ -478,7 +478,7 @@ end
                 sspr(
                     bosssheet,
                     self.frame[self.sprite],32,16,16,
-                    self.x,self.y,16,16
+                    self.x,self.y,self.w,self.h
                 )
             end
 
@@ -508,7 +508,7 @@ function add_boss_turret(_x,_y)
      points=300,
      sprite=1,
      frame={16,32,48,64},
-     timer=-30,
+     timer=40,
 
  
  update=function(self)

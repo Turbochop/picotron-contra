@@ -1,4 +1,4 @@
---[[pod_format="raw",created="2026-02-06 05:16:53",modified="2026-09-14 06:57:43",revision=1279]]
+--[[pod_format="raw",created="2026-02-06 05:16:53",modified="2026-09-26 19:32:10",revision=1408]]
 local enemysheet=3
 
 function add_boss_bubble(_x,_y,_z)
@@ -87,8 +87,10 @@ function add_boss_bubble(_x,_y,_z)
                 self.life=0
                 add_new_exp_spawner(
                     self.x+8,self.y+8,
-                    2,2,"instant"
+                    0,2,"instant"
                 )
+                sfx(258,4,43,4)
+                sfx(258,5,47,4)
                 del(enemy,self)
             end
             
@@ -207,7 +209,119 @@ if (p.prone and p.on_slope) self.offsetx=1 self.offsety=-4 self.offsetw=-2 self.
 
 end
 
+function add_new_ground_turret(_x,_y)
 
+add(enemy,{
+ x=_x*8,
+ y=_y*8,
+-- z=_z or 0,
+ is_turret=true,
+ targetable=false,
+ direction=1,
+sp={96,112,128},
+ blink = {8,9,10},
+ w=16,
+ h=16,
+ deployed=false,
+-- d=4,
+ dx=-1,
+ dy=0,
+ x1=nil,
+ x2=nil,
+ y1=nil,
+ y2=nil,
+ points=200,
+ orgnx=0,
+ orgny=20,
+ life=10,
+ led_pal=1,
+ timer=70,
+
+ update=function(self)
+ local offset= (self.direction==1) and 0 or 4
+ if self.life>=1 then
+ if global_timer%6==1 then
+ 	self.led_pal+=1
+ end
+ if self.led_pal>3 then
+ 	self.led_pal=1
+ end
+ for p in all(players) do
+ 	if (abs((p.x+4)-(self.x+8))<75 and self.y-5>cam_y) and not gameover and not p.dead then
+ 
+ 	if not self.opening and not self.deployed then
+ 	sfx(267,-1,32,16)
+ 	 self.opening=true
+ 		end
+ 	end
+ 	if self.timer%30==1 then
+ 	if self.deployed then self.direction= ((p.y+4)>= self.y) and 1 or 2
+ 	
+ 	end
+ 	end
+ end
+ if self.opening and self.orgny>0 and global_timer%2==1 then self.orgny-=2
+ end
+ if self.orgny==0 then
+ 	self.deployed=true
+ 	self.opening=false
+ 
+ end
+  if self.deployed then
+--  	self.opening=false 
+ 	self.targetable=true
+ 	self.timer+=1
+ 	if self.timer>=150 then self.timer=0
+ 	end
+ 	if self.direction==2 then self.dy=-1
+ 	else self.dy=0
+ 	end
+ 	if  self.timer>100 and self.timer%25==1 then
+ 	sfx(269,5)
+ 		add_new_ebullet(self.x+4, self.y+8, self.dx, self.dy)
+ 		add_new_muzzleflash(self.x+4, self.y+8-offset)
+ 	end
+ end
+ end
+ 
+ if self.life<1  then
+ if self.deployed then 
+ add_new_exp_spawner(self.x+8,self.y+8,2,2,"instant")
+ self.deployed=false
+ end
+-- self.targetable=false
+self.life=0
+
+self.direction=3
+-- mset(sel.x,self.y,171)
+if (g_otimer>1.9 and gameover) 
+or self.y>=cam_y+128
+or self.x+self.w<cam_x
+ then del(enemy,self)
+end
+end
+ if gameover then 
+ self.timer=0
+
+  if  self.orgny<20 and global_timer%3==1 and self.life>0 then self.orgny+=1
+ end
+ end
+end,
+ draw=function(self)
+ palt(30,true)
+ palt(0,false)
+ pal(14,self.blink[self.led_pal])
+ clip(self.x-cam_x,self.y,self.w+1,self.h+3)
+ sspr(enemysheet,self.sp[self.direction],48,16,16,self.x,self.y+self.orgny,self.w,self.h)
+ clip()
+ pal()
+ palt()
+-- print(self.opening,self.x,self.y,7)
+-- print(self.timer,self.x,self.y-16,7)
+ end
+})
+
+end
 
 function add_new_turret(_x,_y,_z)
 
